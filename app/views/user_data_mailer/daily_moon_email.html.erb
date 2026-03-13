@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+    <style>
+      body {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+      }
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 300;
+      }
+      .header .moon-emoji {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 10px;
+      }
+      .content {
+        padding: 30px;
+      }
+      .greeting {
+        font-size: 24px;
+        color: #2d3748;
+        margin-bottom: 20px;
+      }
+      .greeting strong {
+        color: #667eea;
+      }
+      .info-grid {
+        background-color: #f8fafc;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+      }
+      .info-item {
+        margin-bottom: 15px;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 15px;
+      }
+      .info-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+      .info-label {
+        font-weight: bold;
+        color: #4a5568;
+        display: block;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .info-value {
+        font-size: 20px;
+        color: #2d3748;
+        margin-top: 5px;
+      }
+      .moon-phase {
+        text-align: center;
+        margin: 30px 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #f6f9fc 0%, #e6f0f5 100%);
+        border-radius: 8px;
+      }
+      .phase-name {
+        font-size: 32px;
+        color: #2c3e50;
+        font-weight: bold;
+      }
+      .phase-icon {
+        font-size: 64px;
+        margin-bottom: 10px;
+      }
+      .days-info {
+        display: flex;
+        justify-content: space-around;
+        margin: 30px 0;
+        text-align: center;
+      }
+      .days-box {
+        flex: 1;
+        padding: 15px;
+      }
+      .days-number {
+        font-size: 36px;
+        font-weight: bold;
+        color: #667eea;
+        display: block;
+      }
+      .days-label {
+        font-size: 14px;
+        color: #718096;
+        text-transform: uppercase;
+      }
+      .zodiac-sign {
+        text-align: center;
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #fef3c7;
+        border-radius: 8px;
+      }
+      .zodiac-name {
+        font-size: 24px;
+        color: #92400e;
+        font-weight: bold;
+      }
+      .footer {
+        background-color: #2d3748;
+        color: #cbd5e0;
+        padding: 20px;
+        text-align: center;
+        font-size: 14px;
+      }
+      .footer a {
+        color: #90cdf4;
+        text-decoration: none;
+      }
+      .footer a:hover {
+        text-decoration: underline;
+      }
+      @media (max-width: 600px) {
+        .container {
+          margin: 10px;
+          width: auto;
+        }
+        .header {
+          padding: 20px;
+        }
+        .content {
+          padding: 20px;
+        }
+        .days-info {
+          flex-direction: column;
+        }
+        .days-box {
+          margin-bottom: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <span class="moon-emoji">🌙</span>
+        <h1>Boletim Lunar Diário</h1>
+      </div>
+      
+      <div class="content">
+        <div class="greeting">
+          Olá, <strong><%= @user.name %></strong>!
+        </div>
+        
+        <p style="color: #4a5568; font-size: 16px;">
+          Este é o seu email diário com as informações sobre a lua. Confira abaixo os detalhes para hoje:
+        </p>
+
+        <div class="moon-phase">
+          <div class="phase-icon">
+            <% case @moon_data.phase %>
+            <% when 'Crescente' %>
+              🌓
+            <% when 'Minguante' %>
+              🌗
+            <% when 'Nova' %>
+              🌑
+            <% when 'Cheia' %>
+              🌕
+            <% else %>
+              🌙
+            <% end %>
+          </div>
+          <div class="phase-name">
+            <%= @moon_data.phase %>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Signo Lunar</span>
+            <span class="info-value"><%= @moon_data.sign %></span>
+          </div>
+          
+          <div class="info-item">
+            <span class="info-label">Título da Lua</span>
+            <span class="info-value"><%= @moon_data.special_moon %></span>
+          </div>
+        </div>
+
+        <div class="days-info">
+          <div class="days-box">
+            <span class="days-number"><%= @moon_data.days_until_full_moon %></span>
+            <span class="days-label">dias até a lua cheia</span>
+          </div>
+          <div class="days-box">
+            <span class="days-number"><%= @moon_data.days_until_new_moon %></span>
+            <span class="days-label">dias até a próxima lua nova</span>
+          </div>
+        </div>
+
+        <div class="zodiac-sign">
+          <span style="font-size: 20px;">✨</span>
+          <span class="zodiac-name"><%= @moon_data.sign %></span>
+          <span style="font-size: 20px;">✨</span>
+        </div>
+
+        <p style="text-align: center; color: #718096; font-style: italic; margin-top: 30px;">
+          "A lua nos lembra que mesmo na escuridão, há beleza e renovação."
+        </p>
+      </div>
+      
+      <div class="footer">
+        <p style="margin-top: 10px; font-size: 12px;">
+          © <%= Time.current.year %> Lunar Daily. Todos os direitos reservados.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

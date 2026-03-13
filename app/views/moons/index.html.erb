@@ -1,0 +1,12 @@
+<div class="container">
+  <% if @last_checked_moon %>
+    <h1>Dados da Lua atual:</h1>
+    <p><strong>Fase atual:</strong> <%= @last_checked_moon[:phase] %></p>
+    <p><strong>Signo:</strong> <%= @last_checked_moon[:sign] %></p>
+    <p><strong>Titulo da lua:</strong> <%= @last_checked_moon[:special_moon] %></p>
+    <p><strong>Dias até a lua cheia:</strong> <%= @last_checked_moon[:days_until_full_moon] %></p>
+    <p><strong>Dias até a proxima lua nova:</strong> <%= @last_checked_moon[:days_until_new_moon] %></p>
+  <% else %>
+    <p>No moon data available.</p>
+  <% end %>
+</div>
