@@ -1,7 +1,6 @@
 # require 'facets'
 
 class MoonData::Base
-
   def initialize(moon_data, latitude: nil, longitude: nil)
     @moon_data = moon_data
     @latitude = latitude
@@ -63,6 +62,6 @@ class MoonData::Base
       last_quarter: "Último Quarto",
       waning_crescent: "Crescente Minguante"
     }
-    translations[phase.gsub(" ","_").downcase.to_sym] || phase
+    translations[phase.gsub(" ", "_").downcase.to_sym] || phase
   end
 end

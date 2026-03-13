@@ -37,9 +37,9 @@ end
 VCR.configure do |config|
   config.cassette_library_dir = "spec/fixtures/vcr_cassettes"
   config.hook_into :faraday
-  
+
   # ESSA LINHA É A CHAVE:
-  config.configure_rspec_metadata! 
+  config.configure_rspec_metadata!
 end
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures

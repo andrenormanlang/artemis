@@ -4,7 +4,7 @@ class MoonsController < ApplicationController
       session[:latitude] = params[:lat]
       session[:longitude] = params[:lng]
 
-      @last_checked_moon = last_checked_moon 
+      @last_checked_moon = last_checked_moon
 
       render :index
     elsif session[:latitude] && session[:longitude]
@@ -23,7 +23,7 @@ class MoonsController < ApplicationController
                                longitude: session[:longitude],
                                created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day)
     if moon_data.present?
-      moon_data_presenter(moon_data.api_response) 
+      moon_data_presenter(moon_data.api_response)
     else
       api_response = moon_api_data
       presenter = moon_data_presenter(api_response)

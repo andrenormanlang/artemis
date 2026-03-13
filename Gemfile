@@ -45,7 +45,7 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
-  gem 'rspec-rails', '~> 6.1.0'
+  gem "rspec-rails", "~> 6.1.0"
 
   gem "rails-controller-testing"
 
@@ -53,9 +53,9 @@ group :development, :test do
 
   # gem "facets-glimmer", require: false
 
-  gem 'dotenv-rails'
+  gem "dotenv-rails"
 
-  gem 'faraday', '~> 2.14'
+  gem "faraday", "~> 2.14"
 end
 
 group :development do
