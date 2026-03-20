@@ -38,8 +38,11 @@ VCR.configure do |config|
   config.cassette_library_dir = "spec/fixtures/vcr_cassettes"
   config.hook_into :faraday
 
-  # ESSA LINHA É A CHAVE:
   config.configure_rspec_metadata!
+  config.filter_sensitive_data('<ASTRO_API_KEY>') { ENV['ASTRO_API_KEY'] }
+  config.filter_sensitive_data('<SMTP_USERNAME>') { ENV['SMTP_USERNAME'] }
+  config.filter_sensitive_data('<SMTP_PASSWORD>') { ENV['SMTP_PASSWORD'] }
+  config.filter_sensitive_data('<DAILY_LUNAR_API_KEY>') { ENV['DAILY_LUNAR_API_KEY'] }
 end
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures

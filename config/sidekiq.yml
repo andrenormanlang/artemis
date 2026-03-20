@@ -1,4 +1,9 @@
-:schedule:
-  daily_lunar_email:
-    cron: '0 7 * * *'
-    class: DailyLunarEmailJob
+:queues:
+  - default
+  - mailers
+
+:scheduler:
+  :schedule:
+    daily_lunar_email:
+      cron: "0 6 * * *"
+      class: DailyLunarEmailJob
