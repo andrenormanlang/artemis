@@ -54,13 +54,13 @@ class MoonData::Base
   def translate_phase(phase)
     translations = {
       new_moon: "Lua Nova",
-      waxing_crescent: "Crescente Crescente",
+      waxing_crescent: "Crescente",
       first_quarter: "Primeiro Quarto",
       waxing_gibbous: "Gibosa Crescente",
       full_moon: "Lua Cheia",
       waning_gibbous: "Gibosa Minguante",
       last_quarter: "Último Quarto",
-      waning_crescent: "Crescente Minguante"
+      waning_crescent: "Minguante"
     }
     translations[phase.gsub(" ", "_").downcase.to_sym] || phase
   end
