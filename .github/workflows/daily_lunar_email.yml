@@ -2,17 +2,38 @@ name: Daily lunar email (Neon)
 
 on:
   schedule:
-    # Run at 20:00 and 21:00 UTC so local 22:00 Europe/Stockholm proceeds (handles DST)
     - cron: "00 20,21 * * *"
   workflow_dispatch:
     inputs:
       force:
-        description: 'Force run irrespective of Europe/Stockholm local time (use "true" to force)'
+        description: 'Force run regardless of Stockholm local time ("true" to force)'
         required: false
         default: "false"
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check_time.outputs.run }}
+    steps:
+      - name: Check local time (Europe/Stockholm)
+        id: check_time
+        run: |
+          echo "Europe/Stockholm now: $(TZ='Europe/Stockholm' date)"
+          now=$(TZ='Europe/Stockholm' date +%s)
+          target=$(TZ='Europe/Stockholm' date -d "$(TZ='Europe/Stockholm' date +%F) 22:00:00" +%s)
+          diff=$(( now>target ? now-target : target-now ))
+          echo "Diff from 22:00: ${diff}s"
+          if [ "$diff" -le 3600 ]; then
+            echo "run=true" >> $GITHUB_OUTPUT
+          else
+            echo "run=false" >> $GITHUB_OUTPUT
+            echo "Not within 60 min of 22:00 Stockholm — skipping."
+          fi
+
   daily_email:
+    needs: gate
+    if: needs.gate.outputs.run == 'true' || github.event.inputs.force == 'true'
     runs-on: ubuntu-latest
     env:
       RAILS_ENV: production
@@ -30,11 +51,9 @@ jobs:
       REDIS_URL: ${{ secrets.REDIS_URL }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
           bundler-cache: true
@@ -46,26 +65,9 @@ jobs:
         run: |
           bundle config set without 'development test' || true
           bundle install --jobs 4 --retry 3
-      - name: Check local time (Europe/Stockholm)
-        id: check_time
-        run: |
-          echo "Europe/Stockholm now: $(TZ='Europe/Stockholm' date)"
-          now=$(TZ='Europe/Stockholm' date +%s)
-          target=$(TZ='Europe/Stockholm' date -d "$(TZ='Europe/Stockholm' date +%F) 22:00:00" +%s)
-          diff=$(( now>target ? now-target : target-now ))
-          echo "Now epoch: $now, Target epoch: $target, Diff seconds: $diff"
-          # Widened to 60 minutes = 3600 seconds to absorb GitHub Actions delays
-          if [ "$diff" -le 3600 ]; then
-            echo "run=true" >> $GITHUB_OUTPUT
-            echo "Within 60 minutes of 22:00 — proceeding."
-          else
-            echo "run=false" >> $GITHUB_OUTPUT
-            echo "Not within 60 minutes of 22:00 Europe/Stockholm; skipping task."
-          fi
+
       - name: Run DB migrations
-        if: steps.check_time.outputs.run == 'true' || github.event.inputs.force == 'true'
         run: bundle exec rails db:migrate
 
-      - name: Run daily lunar mail task
-        if: steps.check_time.outputs.run == 'true' || github.event.inputs.force == 'true'
+      - name: Send daily lunar email
         run: bundle exec rails cron:daily_lunar_email
