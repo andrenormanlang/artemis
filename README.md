@@ -38,6 +38,22 @@ Notes:
 - The mailer and job use the Rails `ActionMailer` and `ActiveJob` settings in your environment files.
 - If you want a production scheduler, run Sidekiq with a scheduler (config/sidekiq_scheduler.yml and config/sidekiq.yml exist) or use system cron / Windows Task Scheduler to run the rake task daily.
 
+GitHub Actions scheduled run
+
+- The repository includes a workflow at `.github/workflows/daily_lunar_email.yml` which runs the daily email.
+- Schedule: the workflow is configured to trigger daily around **22:00 Europe/Stockholm** (DST-safe). Because GitHub cron uses UTC, the workflow cron is set to `00 20,21 * * *` (UTC) to cover DST transitions.
+- Tolerance: the workflow includes a local-time check and allows a **±15 minute** window around 22:00 to avoid missing runs due to minute-level scheduling jitter.
+- Manual run / force: the workflow supports a `workflow_dispatch` input named `force`. To force a run regardless of local time set `force` to `true` in the Actions UI, or run:
+
+```bash
+gh workflow run daily_lunar_email.yml --ref main -f force=true
+```
+
+- Troubleshooting: if you do not receive email:
+    - Open the Actions run logs and look for the `Check local time` output and the rake task logs (`Starting DailyLunarEmailJob...`, `DailyLunarEmailJob complete.`).
+    - Verify GitHub repository Secrets (Settings → Secrets → Actions) contain: `DATABASE_URL`, `RAILS_MASTER_KEY`, `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_AUTHENTICATION`, `APP_HOST`, `DAILY_LUNAR_API_URL`, `ASTRO_API_KEY`, and `REDIS_URL`.
+    - If the workflow was skipped due to time mismatch, re-run with `force=true` as shown above.
+
 ## Sidekiq & Redis
 
 This project supports using Sidekiq for background processing and scheduled jobs.
