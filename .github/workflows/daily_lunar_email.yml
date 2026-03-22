@@ -4,7 +4,12 @@ on:
   schedule:
     # Run at 18:30 and 19:30 UTC so local 20:30 Europe/Stockholm proceeds (handles DST)
     - cron: "30 18,19 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force run irrespective of Europe/Stockholm local time (use "true" to force)'
+        required: false
+        default: "false"
 
 jobs:
   daily_email:
@@ -58,9 +63,9 @@ jobs:
           fi
 
       - name: Run DB migrations
-        if: steps.check_time.outputs.run == 'true'
+        if: steps.check_time.outputs.run == 'true' || github.event.inputs.force == 'true'
         run: bundle exec rails db:migrate
 
       - name: Run daily lunar mail task
-        if: steps.check_time.outputs.run == 'true'
+        if: steps.check_time.outputs.run == 'true' || github.event.inputs.force == 'true'
         run: bundle exec rails cron:daily_lunar_email
