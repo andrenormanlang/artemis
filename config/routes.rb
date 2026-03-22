@@ -11,5 +11,5 @@ Rails.application.routes.draw do
 
   resources :moon, controller: :moons, only: [ :index ]
   # Redirect root to /moon
-  root to: "moons#index" 
+  root to: "moons#index"
 end

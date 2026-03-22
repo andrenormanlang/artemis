@@ -50,9 +50,9 @@ gh workflow run daily_lunar_email.yml --ref main -f force=true
 ```
 
 - Troubleshooting: if you do not receive email:
-    - Open the Actions run logs and look for the `Check local time` output and the rake task logs (`Starting DailyLunarEmailJob...`, `DailyLunarEmailJob complete.`).
-    - Verify GitHub repository Secrets (Settings → Secrets → Actions) contain: `DATABASE_URL`, `RAILS_MASTER_KEY`, `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_AUTHENTICATION`, `APP_HOST`, `DAILY_LUNAR_API_URL`, `ASTRO_API_KEY`, and `REDIS_URL`.
-    - If the workflow was skipped due to time mismatch, re-run with `force=true` as shown above.
+  - Open the Actions run logs and look for the `Check local time` output and the rake task logs (`Starting DailyLunarEmailJob...`, `DailyLunarEmailJob complete.`).
+  - Verify GitHub repository Secrets (Settings → Secrets → Actions) contain: `DATABASE_URL`, `RAILS_MASTER_KEY`, `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_AUTHENTICATION`, `APP_HOST`, `DAILY_LUNAR_API_URL`, `ASTRO_API_KEY`, and `REDIS_URL`.
+  - If the workflow was skipped due to time mismatch, re-run with `force=true` as shown above.
 
 ## Sidekiq & Redis
 

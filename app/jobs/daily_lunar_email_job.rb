@@ -15,7 +15,7 @@ class DailyLunarEmailJob < ApplicationJob
                                                         "include_special" => true }).call
 
         # Handle API failures gracefully — skip this user and continue
-        if api_response.nil? || (api_response.is_a?(Hash) && (api_response[:error].present? || api_response['error'].present?))
+        if api_response.nil? || (api_response.is_a?(Hash) && (api_response[:error].present? || api_response["error"].present?))
           Rails.logger.error("DailyLunarEmailJob: Moon API error for #{user.email}: #{api_response.inspect}")
           next
         end

@@ -18,7 +18,7 @@ class MoonData::Index < MoonData::Base
     return 0 if date_value.blank?
 
     target_date = Date.parse(date_value.to_s)
-    [(target_date - Date.current).to_i, 0].max
+    [ (target_date - Date.current).to_i, 0 ].max
   rescue ArgumentError, TypeError
     0
   end

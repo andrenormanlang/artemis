@@ -10,7 +10,7 @@
 
 # Idempotent creation of André (used by daily mailer)
 User.find_or_create_by!(email: 'andrenormanlang@gmail.com') do |u|
-	u.name = 'André'
-	u.latitude = 55.6053
-	u.longitude = 13.0076
+  u.name = 'André'
+  u.latitude = 55.6053
+  u.longitude = 13.0076
 end
