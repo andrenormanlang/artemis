@@ -90,13 +90,17 @@ jobs:
             sleep 1
           done
 
-      - name: Run tests
+      - name: Run tests (RSpec)
         env:
           RAILS_ENV: test
           DB_HOST: 127.0.0.1
           DB_PORT: 5432
-          # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test test:system
+        run: |
+          set -e
+          echo "Preparing test database (create + migrate)..."
+          bundle exec rails db:create db:migrate RAILS_ENV=test
+          echo "Running RSpec suite..."
+          bundle exec rspec --format documentation
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v7

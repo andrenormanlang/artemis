@@ -46,7 +46,6 @@ jobs:
         run: |
           bundle config set without 'development test' || true
           bundle install --jobs 4 --retry 3
-
       - name: Check local time (Europe/Stockholm)
         id: check_time
         run: |
@@ -55,15 +54,14 @@ jobs:
           target=$(TZ='Europe/Stockholm' date -d "$(TZ='Europe/Stockholm' date +%F) 22:00:00" +%s)
           diff=$(( now>target ? now-target : target-now ))
           echo "Now epoch: $now, Target epoch: $target, Diff seconds: $diff"
-          # allow 15 minutes = 900 seconds tolerance
-          if [ "$diff" -le 900 ]; then
+          # Widened to 60 minutes = 3600 seconds to absorb GitHub Actions delays
+          if [ "$diff" -le 3600 ]; then
             echo "run=true" >> $GITHUB_OUTPUT
-            echo "Within 15 minutes of 22:00 — proceeding."
+            echo "Within 60 minutes of 22:00 — proceeding."
           else
             echo "run=false" >> $GITHUB_OUTPUT
-            echo "Not within 15 minutes of 22:00 Europe/Stockholm; skipping task."
+            echo "Not within 60 minutes of 22:00 Europe/Stockholm; skipping task."
           fi
-
       - name: Run DB migrations
         if: steps.check_time.outputs.run == 'true' || github.event.inputs.force == 'true'
         run: bundle exec rails db:migrate
