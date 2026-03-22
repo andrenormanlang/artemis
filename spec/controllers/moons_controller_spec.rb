@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "MoonsController", type: :controller do
+RSpec.describe MoonsController, type: :controller do
   describe "GET /index" do
     let(:valid_response) do
       {
