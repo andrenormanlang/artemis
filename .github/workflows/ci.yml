@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [ mail-config ]
+    branches: [ main ]
 
 jobs:
   scan_ruby:
