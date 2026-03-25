@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   scan_ruby:
@@ -55,23 +55,16 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: shiva7
-          POSTGRES_DB: test_database
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d test_database"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+
+    # services:
+    #  redis:
+    #    image: redis
+    #    ports:
+    #      - 6379:6379
+    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl libjemalloc2 libvips sqlite3 postgresql-client
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable curl libjemalloc2 libvips sqlite3
 
       - name: Checkout code
         uses: actions/checkout@v6
@@ -82,25 +75,11 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Wait for Postgres
-        run: |
-          echo "Waiting for Postgres to be ready..."
-          for i in {1..30}; do
-            pg_isready -h 127.0.0.1 -p 5432 -U postgres && break
-            sleep 1
-          done
-
-      - name: Run tests (RSpec)
+      - name: Run tests
         env:
           RAILS_ENV: test
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-        run: |
-          set -e
-          echo "Preparing test database (create + migrate)..."
-          bundle exec rails db:create db:migrate RAILS_ENV=test
-          echo "Running RSpec suite..."
-          bundle exec rspec --format documentation
+          # REDIS_URL: redis://localhost:6379/0
+        run: bin/rails db:test:prepare test test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v7

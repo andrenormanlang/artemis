@@ -38,11 +38,3 @@
 # Ignore vcr cassettes
 /spec/fixtures/vcr_cassettes/*
 !/spec/fixtures/vcr_cassettes/.keep
-
-
-#Ignorando os meus arquivos de configuração para desenvolvimento local
-/config/andre_database.yml
-/config/andre_credentials.yml.enc
-/config/andre_routes.rb
-/db/andre_schema.rb
-Gemfile_andre.lock

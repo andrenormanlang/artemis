@@ -13,7 +13,18 @@
 # it.
 #
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
+require 'rubygems'
+require 'test/unit'
 require 'vcr'
+
+class VCRTest < Test::Unit::TestCase
+  def test_example_dot_com
+    VCR.use_cassette("synopsis") do
+      response = Net::HTTP.get_response(URI('http://www.iana.org/domains/reserved'))
+      assert_match /Example domains/, response.body
+    end
+  end
+end
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

@@ -13,19 +13,6 @@ RSpec.describe MoonApiService, type: :service, vcr: true do
     end
 
     it "returns moon data for the given parameters" do
-      expected_response = {
-        "phase" => { "name" => "full_moon" },
-        "moon_visual" => {},
-        "zodiac" => { "sign" => "Aries" },
-        "special_moon" => { "labels" => [] }
-      }
-
-      # Stub Faraday to avoid external HTTP in CI
-      fake_conn = double("FaradayConnection")
-      fake_resp = double("FaradayResponse", body: expected_response)
-      allow(fake_conn).to receive(:get).and_return(fake_resp)
-      allow(Faraday).to receive(:new).and_return(fake_conn)
-
       service = MoonApiService.new(DateTime.now, params)
       response = service.call
 

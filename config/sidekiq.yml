@@ -1,5 +1,9 @@
-:schedule:
-  daily_lunar_email:
-    cron: '0 18 * * *'
-    class: DailyLunarEmailJob
-    tz: 'Europe/Stockholm'
+:queues:
+  - default
+  - mailers
+
+:scheduler:
+  :schedule:
+    daily_lunar_email:
+      cron: "0 6 * * *"
+      class: DailyLunarEmailJob

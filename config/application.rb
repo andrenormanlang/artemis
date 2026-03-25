@@ -17,9 +17,6 @@ module MoonUpdateApi
     config.autoload_lib(ignore: %w[assets tasks])
     config.paths.add "app/presenters", eager_load: true
 
-    # Use Sidekiq as Active Job backend
-    config.active_job.queue_adapter = :sidekiq
-
 
     # Configuration for the application, engines, and railties goes here.
     #

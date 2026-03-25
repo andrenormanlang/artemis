@@ -1,4 +1,4 @@
-<div class="loading-container">
+<div class="loading-container" data-controller="location">
   <!-- Stars Background -->
   <div class="stars">
     <% 50.times do |i| %>
@@ -12,38 +12,13 @@
   </div>
  <!-- Header -->
   <header class="app-header">
+    <%# Translate all text of below to Brazilian Portuguese %>
     <h1>🌙 Artemis</h1>
-    <p>Current Moon Phase Information</p>
+    <p>Informações sobre a fase atual da lua</p>
   </header>
 
   <!-- Loading Animation -->
   <div class="loading-icon"></div>
-  
-  <p class="loading-text">Locating you...</p>
-  <p class="loading-subtext">We need your location to show accurate moon data</p>
+    <p class="loading-text" data-location-target="loadingText">Localizando você....</p>
+    <p class="loading-subtext" data-location-target="loadingSubtext">Nós precisamos da sua localização para mostrar dados precisos da lua</p>
 </div>
-
-<script>
-  // Trigger location request on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          window.location.href = `/?lat=${lat}&lng=${lng}`;
-    
-     },
-        (error) => {
-          console.error("Location error:", error);
-          // Show error message instead of redirecting
-          document.querySelector('.loading-text').textContent = 'Location access denied';
-          document.querySelector('.loading-subtext').textContent = 'Please enable location services to see moon data';
-        }
-      );
-    } else {
-      document.querySelector('.loading-text').textContent = 'Location not supported';
-      document.querySelector('.loading-subtext').textContent = 'Your browser does not support geolocation';
-    }
-  });
-</script>
