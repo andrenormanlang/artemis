@@ -1,6 +1,8 @@
-import { Controller } from "@hotwired/stimulus"
+import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
+  static targets = ["loadingText", "loadingSubtext"];
+
   connect() {
     this.requestLocation();
   }
@@ -11,18 +13,32 @@ export default class extends Controller {
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          
-          // Redireciona para a mesma página com os parâmetros
-          window.location.href = `?lat=${lat}&lng=${lng}`;
+
+          window.location.href = `/moon?lat=${lat}&lng=${lng}`;
         },
         (error) => {
           console.error("Erro ao obter localização:", error);
-          // Tratar erro - talvez redirecionar sem localização?
-          window.location.href = "?lat=0&lng=0"; // valor padrão
-        }
+          this.showError(
+            "Acesso à localização negado",
+            "Por favor, habilite os serviços de localização para ver os dados da lua",
+          );
+        },
       );
     } else {
-      window.location.href = "?lat=0&lng=0"; // geolocalização não suportada
+      this.showError(
+        "Acesso à localização não suportado",
+        "Seu navegador não suporta geolocalização",
+      );
+    }
+  }
+
+  showError(title, description) {
+    if (this.hasLoadingTextTarget) {
+      this.loadingTextTarget.textContent = title;
+    }
+
+    if (this.hasLoadingSubtextTarget) {
+      this.loadingSubtextTarget.textContent = description;
     }
   }
 }
