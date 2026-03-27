@@ -1,270 +1,213 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: #0a0e17;
-        font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
-        color: #e2e8f0;
-      }
-      table {
-        border-spacing: 0;
-        border-collapse: collapse;
-      }
-      .wrapper {
-        width: 100%;
-        background-color: #0a0e17;
-        background-image: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.18) 0, rgba(99, 102, 241, 0) 40%), radial-gradient(circle at 90% 10%, rgba(251, 191, 36, 0.16) 0, rgba(251, 191, 36, 0) 35%);
-      }
-      .container {
-        width: 100%;
-        max-width: 640px;
-        margin: 0 auto;
-        background-color: #111827;
-        border: 1px solid #263247;
-        border-radius: 14px;
-        overflow: hidden;
-      }
-      .header {
-        background-color: #1e1b4b;
-        background-image: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #0f172a 100%);
-        text-align: center;
-        padding: 28px 24px;
-      }
-      .title {
-        margin: 0;
-        font-size: 28px;
-        line-height: 1.2;
-        color: #f8fafc;
-        font-weight: 700;
-      }
-      .subtitle {
-        margin: 8px 0 0;
-        color: #cbd5e1;
-        font-size: 14px;
-      }
-      .content {
-        padding: 24px;
-      }
-      .greeting {
-        margin: 0 0 10px;
-        font-size: 20px;
-        color: #f8fafc;
-      }
-      .muted {
-        margin: 0 0 18px;
-        color: #94a3b8;
-        font-size: 14px;
-      }
-      .panel {
-        background-color: #0f172a;
-        border: 1px solid #1f2937;
-        border-radius: 10px;
-      }
-      .phase-icon {
-        font-size: 56px;
-        line-height: 1;
-      }
-      .phase-name {
-        margin-top: 8px;
-        color: #fbbf24;
-        font-size: 28px;
-        font-weight: 700;
-      }
-      .label {
-        color: #94a3b8;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-      }
-      .value {
-        margin-top: 6px;
-        color: #e2e8f0;
-        font-size: 18px;
-        font-weight: 700;
-      }
-      .badge-purple {
-        display: inline-block;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: #312e81;
-        border: 1px solid #4f46e5;
-        color: #c7d2fe;
-        font-size: 12px;
-        font-weight: 600;
-      }
-      .badge-gold {
-        display: inline-block;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: #78350f;
-        border: 1px solid #f59e0b;
-        color: #fde68a;
-        font-size: 12px;
-        font-weight: 600;
-      }
-      .days-card {
-        background: #0f172a;
-        border: 1px solid #1f2937;
-        border-radius: 10px;
-        padding: 14px;
-      }
-      .days-number {
-        font-size: 32px;
-        font-weight: 700;
-        color: #f8fafc;
-      }
-      .days-number.gold {
-        color: #fbbf24;
-      }
-      .days-number.indigo {
-        color: #a5b4fc;
-      }
-      .days-label {
-        color: #94a3b8;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.7px;
-        margin-top: 4px;
-      }
-      .progress-track {
-        margin-top: 10px;
-        height: 8px;
-        border-radius: 99px;
-        background: #1f2937;
-        overflow: hidden;
-      }
-      .progress-fill {
-        height: 8px;
-        border-radius: 99px;
-        background: linear-gradient(90deg, #6366f1 0%, #3b82f6 100%);
-      }
-      .footer {
-        border-top: 1px solid #1f2937;
-        padding: 18px 24px;
-        text-align: center;
-        color: #64748b;
-        font-size: 12px;
-      }
-      @media (max-width: 600px) {
-        .container {
-          border-radius: 0;
-        }
-        .content {
-          padding: 18px;
-        }
-        .title {
-          font-size: 24px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <% full_days = (@moon_data.days_until_full_moon || 0).to_i %>
-    <% new_days = (@moon_data.days_until_new_moon || 0).to_i %>
-    <% full_progress = [[(full_days.fdiv(29.53) * 100).round, 100].min, 0].max %>
-    <% new_progress = [[(new_days.fdiv(29.53) * 100).round, 100].min, 0].max %>
-    <% phase_icon = case @moon_data.phase.to_s.downcase
-                   when /nova/
-                     '🌑'
-                   when /cheia/
-                     '🌕'
-                   when /minguante/
-                     '🌗'
-                   when /crescente/
-                     '🌓'
-                   else
-                     '🌙'
-                   end %>
+<% stockholm_time = Time.find_zone!("Europe/Stockholm").now %>
+<% report_date = stockholm_time.strftime("%d/%m/%Y") %>
+<% user_name = @user.name.presence || "explorador lunar" %>
+<% phase_name = @moon_data.phase.presence || "Sem fase definida" %>
+<% sign_name = @moon_data.sign.presence || "Sem signo definido" %>
+<% special_name = @moon_data.special_moon.presence || "Nenhuma lua especial" %>
+<% full_days = [(@moon_data.days_until_full_moon || 0).to_i, 0].max %>
+<% new_days = [(@moon_data.days_until_new_moon || 0).to_i, 0].max %>
+<% full_progress = [[100 - (full_days.fdiv(29.53) * 100).round, 100].min, 0].max %>
+<% new_progress = [[100 - (new_days.fdiv(29.53) * 100).round, 100].min, 0].max %>
+<% next_event_name, next_event_days = full_days <= new_days ? ["Lua cheia", full_days] : ["Lua nova", new_days] %>
+<% next_event_copy = case next_event_days
+                    when 0
+                      "#{next_event_name} hoje"
+                    when 1
+                      "#{next_event_name} amanhã"
+                    else
+                      "#{next_event_days} dias para a #{next_event_name.downcase}"
+                    end %>
+<% hero_copy = case next_event_days
+               when 0
+                 "A lua está em #{phase_name} e #{next_event_name.downcase} acontece hoje."
+               when 1
+                 "A lua está em #{phase_name} e #{next_event_name.downcase} chega amanhã."
+               else
+                 "A lua está em #{phase_name} e faltam #{next_event_days} dias para a #{next_event_name.downcase}."
+               end %>
+<% insight_title, insight_copy = case phase_name.downcase
+                                 when /nova/
+                                   ["Momento de recomeço", "Fase boa para plantar intenções, simplificar a agenda e abrir espaço para um novo ciclo."]
+                                 when /cheia/
+                                   ["Energia no auge", "Período favorável para celebrar progresso, concluir pendências e observar o que ficou mais visível."]
+                                 when /minguante/
+                                   ["Hora de desacelerar", "A maré pede revisão, fechamento e menos ruído. Um bom momento para ajustar o ritmo."]
+                                 when /crescente/
+                                   ["Fase de construção", "Clima ideal para ganhar consistência, retomar planos e sustentar o que já começou."]
+                                 else
+                                   ["Leitura lunar do dia", "Hoje vale observar o céu com calma e usar o boletim como bússola para o ritmo do seu dia."]
+                                 end %>
+<% phase_icon = case phase_name.downcase
+                when /nova/
+                  "🌑"
+                when /cheia/
+                  "🌕"
+                when /minguante/
+                  "🌗"
+                when /crescente/
+                  "🌓"
+                else
+                  "🌙"
+                end %>
+<% special_pill_class = special_name == "Nenhuma lua especial" ? "pill-neutral" : "pill-special" %>
+<% app_host = ENV["APP_HOST"].to_s.strip %>
+<% app_url = if app_host.present?
+               normalized_host = app_host.match?(/\Ahttps?:\/\//i) ? app_host : "https://#{app_host}"
+               "#{normalized_host.chomp("/")}/moon"
+             end %>
 
-    <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#0a0e17;">Seu boletim lunar diário: fase atual, signo e dias para os próximos eventos lunares.</div>
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#07111f;">
+  <%= "#{phase_name} hoje. #{next_event_copy.capitalize} e leitura rápida do seu ciclo lunar." %>
+</div>
 
-    <table role="presentation" width="100%" class="wrapper">
-      <tr>
-        <td align="center" style="padding: 24px 12px;">
-          <table role="presentation" width="100%" class="container">
-            <tr>
-              <td class="header">
-                <div style="font-size: 38px; line-height: 1;">🌙</div>
-                <h1 class="title">Boletim Lunar Diário</h1>
-                <p class="subtitle">Artemis • Informações da lua para hoje</p>
-              </td>
-            </tr>
+<table role="presentation" width="100%" class="email-body">
+  <tr>
+    <td align="center" style="padding: 24px 12px;">
+      <table role="presentation" width="100%" class="shell">
+        <tr>
+          <td>
+            <table role="presentation" width="100%" class="card">
+              <tr>
+                <td class="hero">
+                  <table role="presentation" width="100%" class="mobile-block">
+                    <tr>
+                      <td style="vertical-align: top;">
+                        <p class="eyebrow">Boletim Lunar • <%= report_date %></p>
+                        <h1 class="hero-title">Uma leitura mais clara da sua noite.</h1>
+                        <p class="lede">Olá, <strong><%= user_name %></strong>. <%= hero_copy %> Aqui vai o que realmente importa no céu de hoje, sem precisar abrir o app para entender tudo.</p>
+                      </td>
+                      <td width="104" align="right" class="moon-mark-wrap" style="vertical-align: top;">
+                        <span class="moon-mark"><%= phase_icon %></span>
+                      </td>
+                    </tr>
+                  </table>
 
-            <tr>
-              <td class="content">
-                <p class="greeting">Olá, <strong><%= @user.name || 'amigo' %></strong>!</p>
-                <p class="muted">Aqui está o resumo lunar com o mesmo estilo cósmico da página do app.</p>
+                  <table role="presentation" width="100%" class="summary-card">
+                    <tr>
+                      <td>
+                        <p class="summary-label">Leitura de hoje</p>
+                        <p class="summary-value"><%= insight_title %></p>
+                        <p class="summary-copy"><%= insight_copy %></p>
+                      </td>
+                    </tr>
+                  </table>
 
-                <table role="presentation" width="100%" class="panel" style="text-align:center; margin-bottom: 16px;">
-                  <tr>
-                    <td style="padding: 18px 14px;">
-                      <div class="phase-icon"><%= phase_icon %></div>
-                      <div class="phase-name"><%= @moon_data.phase || 'Sem fase' %></div>
-                    </td>
-                  </tr>
-                </table>
+                  <% if app_url.present? %>
+                    <div class="hero-actions">
+                      <a href="<%= app_url %>" class="button">Abrir Artemis</a>
+                      <span class="button-secondary">Veja o painel completo quando quiser explorar mais detalhes.</span>
+                    </div>
+                  <% end %>
+                </td>
+              </tr>
 
-                <table role="presentation" width="100%" class="panel" style="margin-bottom: 16px;">
-                  <tr>
-                    <td style="padding: 14px; border-bottom: 1px solid #1f2937;">
-                      <div class="label">Signo</div>
-                      <div style="margin-top: 6px;"><span class="badge-purple"><%= @moon_data.sign || 'N/D' %></span></div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 14px;">
-                      <div class="label">Título da lua</div>
-                      <div style="margin-top: 6px;"><span class="badge-gold"><%= @moon_data.special_moon || 'Nenhuma lua especial' %></span></div>
-                    </td>
-                  </tr>
-                </table>
+              <tr>
+                <td class="section">
+                  <p class="section-title">O que importa agora</p>
+                  <table role="presentation" width="100%" class="mobile-block">
+                    <tr>
+                      <td width="33.33%" style="padding-right: 8px; vertical-align: top;">
+                        <table role="presentation" width="100%" class="metric-card">
+                          <tr>
+                            <td>
+                              <p class="metric-label">Fase atual</p>
+                              <p class="metric-value"><%= phase_name %></p>
+                              <p class="metric-note">Seu panorama lunar principal para hoje.</p>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="mobile-gap" style="width: 0; font-size: 0; line-height: 0;">&nbsp;</td>
+                      <td width="33.33%" style="padding-left: 4px; padding-right: 4px; vertical-align: top;">
+                        <table role="presentation" width="100%" class="metric-card">
+                          <tr>
+                            <td>
+                              <p class="metric-label">Signo lunar</p>
+                              <p class="metric-value"><span class="pill pill-sign"><%= sign_name %></span></p>
+                              <p class="metric-note">Um detalhe rápido para contextualizar o tom do dia.</p>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="mobile-gap" style="width: 0; font-size: 0; line-height: 0;">&nbsp;</td>
+                      <td width="33.33%" style="padding-left: 8px; vertical-align: top;">
+                        <table role="presentation" width="100%" class="metric-card">
+                          <tr>
+                            <td>
+                              <p class="metric-label">Título da lua</p>
+                              <p class="metric-value"><span class="pill <%= special_pill_class %>"><%= special_name %></span></p>
+                              <p class="metric-note">Destaque especial do ciclo, quando existir.</p>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
 
-                <table role="presentation" width="100%">
-                  <tr>
-                    <td width="50%" style="padding-right: 6px; vertical-align: top;">
-                      <table role="presentation" width="100%" class="days-card">
-                        <tr><td class="days-number gold"><%= full_days %></td></tr>
-                        <tr><td class="days-label">dias até a lua cheia</td></tr>
-                        <tr>
-                          <td>
-                            <div class="progress-track">
-                              <div class="progress-fill" style="width: <%= full_progress %>%;"></div>
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
+              <tr>
+                <td class="section">
+                  <p class="section-title">Próximos marcos</p>
+                  <table role="presentation" width="100%" class="mobile-block">
+                    <tr>
+                      <td width="50%" style="padding-right: 8px; vertical-align: top;">
+                        <table role="presentation" width="100%" class="countdown-card">
+                          <tr>
+                            <td>
+                              <p class="countdown-label">Lua cheia</p>
+                              <p class="countdown-number"><%= full_days %></p>
+                              <p class="countdown-unit"><%= full_days == 1 ? "dia restante" : "dias restantes" %></p>
+                              <div class="progress-track">
+                                <div class="progress-fill-gold" style="width: <%= full_progress %>%;"></div>
+                              </div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td class="mobile-gap" style="width: 0; font-size: 0; line-height: 0;">&nbsp;</td>
+                      <td width="50%" style="padding-left: 8px; vertical-align: top;">
+                        <table role="presentation" width="100%" class="countdown-card">
+                          <tr>
+                            <td>
+                              <p class="countdown-label">Lua nova</p>
+                              <p class="countdown-number"><%= new_days %></p>
+                              <p class="countdown-unit"><%= new_days == 1 ? "dia restante" : "dias restantes" %></p>
+                              <div class="progress-track">
+                                <div class="progress-fill-blue" style="width: <%= new_progress %>%;"></div>
+                              </div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
 
-                    <td width="50%" style="padding-left: 6px; vertical-align: top;">
-                      <table role="presentation" width="100%" class="days-card">
-                        <tr><td class="days-number indigo"><%= new_days %></td></tr>
-                        <tr><td class="days-label">dias até a lua nova</td></tr>
-                        <tr>
-                          <td>
-                            <div class="progress-track">
-                              <div class="progress-fill" style="width: <%= new_progress %>%;"></div>
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
+              <tr>
+                <td class="section">
+                  <table role="presentation" width="100%" class="note-card">
+                    <tr>
+                      <td>
+                        <p class="section-title" style="margin-bottom: 10px;">Resumo rápido</p>
+                        <p class="note-copy">Seu próximo destaque lunar é <strong><%= next_event_copy.downcase %></strong>. Este boletim foi pensado para ser escaneável em poucos segundos: primeiro o contexto, depois o que muda em seguida.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
 
-            <tr>
-              <td class="footer">
-                © <%= Time.current.year %> Artemis Lunar Daily • Feito para suas atualizações lunares.
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>
+              <tr>
+                <td class="footer">
+                  <p class="footer-copy"><strong>Artemis</strong> • boletim diário enviado no seu horário de referência lunar.</p>
+                  <p class="footer-copy">© <%= stockholm_time.year %> Artemis. Feito para transformar dados da lua em uma leitura rápida, bonita e útil.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

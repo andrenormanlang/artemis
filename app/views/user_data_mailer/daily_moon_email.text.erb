@@ -1,0 +1,37 @@
+<% stockholm_time = Time.find_zone!("Europe/Stockholm").now %>
+<% report_date = stockholm_time.strftime("%d/%m/%Y") %>
+<% user_name = @user.name.presence || "explorador lunar" %>
+<% phase_name = @moon_data.phase.presence || "Sem fase definida" %>
+<% sign_name = @moon_data.sign.presence || "Sem signo definido" %>
+<% special_name = @moon_data.special_moon.presence || "Nenhuma lua especial" %>
+<% full_days = [(@moon_data.days_until_full_moon || 0).to_i, 0].max %>
+<% new_days = [(@moon_data.days_until_new_moon || 0).to_i, 0].max %>
+<% next_event_name, next_event_days = full_days <= new_days ? ["Lua cheia", full_days] : ["Lua nova", new_days] %>
+<% next_event_copy = case next_event_days
+                    when 0
+                      "#{next_event_name} hoje"
+                    when 1
+                      "#{next_event_name} amanhã"
+                    else
+                      "#{next_event_days} dias para a #{next_event_name.downcase}"
+                    end %>
+<% app_host = ENV["APP_HOST"].to_s.strip %>
+<% app_url = if app_host.present?
+               normalized_host = app_host.match?(/\Ahttps?:\/\//i) ? app_host : "https://#{app_host}"
+               "#{normalized_host.chomp("/")}/moon"
+             end %>
+Boletim Lunar Diário • <%= report_date %>
+
+Olá, <%= user_name %>.
+
+Fase atual: <%= phase_name %>
+Signo lunar: <%= sign_name %>
+Título da lua: <%= special_name %>
+
+Próximo destaque: <%= next_event_copy.capitalize %>
+Dias até a lua cheia: <%= full_days %>
+Dias até a lua nova: <%= new_days %>
+
+<% if app_url.present? %>
+Abrir Artemis: <%= app_url %>
+<% end %>
