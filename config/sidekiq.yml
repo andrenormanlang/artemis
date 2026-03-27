@@ -1,5 +1,5 @@
 :schedule:
   daily_lunar_email:
-    cron: '0 18 * * *'
+    cron: '30 21 * * *'
     class: DailyLunarEmailJob
     tz: 'Europe/Stockholm'

@@ -37,12 +37,13 @@ Notes:
 
 - The mailer and job use the Rails `ActionMailer` and `ActiveJob` settings in your environment files.
 - If you want a production scheduler, run Sidekiq with a scheduler (config/sidekiq_scheduler.yml and config/sidekiq.yml exist) or use system cron / Windows Task Scheduler to run the rake task daily.
+- The job now guards against duplicate sends per user for the same Europe/Stockholm date, so overlapping scheduler sources will not send two copies.
 
 GitHub Actions scheduled run
 
 - The repository includes a workflow at `.github/workflows/daily_lunar_email.yml` which runs the daily email.
-- Schedule: the workflow is configured to trigger daily around **22:00 Europe/Stockholm** (DST-safe). Because GitHub cron uses UTC, the workflow cron is set to `00 20,21 * * *` (UTC) to cover DST transitions.
-- Tolerance: the workflow includes a local-time check and allows a **±15 minute** window around 22:00 to avoid missing runs due to minute-level scheduling jitter.
+- Schedule: the workflow is configured to trigger daily around **21:30 Europe/Stockholm** (DST-safe). Because GitHub cron uses UTC, the workflow cron is set to `30 19,20 * * *` (UTC) to cover DST transitions.
+- Tolerance: the workflow includes a local-time check and allows a **±15 minute** window around 21:30 to avoid missing runs due to minute-level scheduling jitter.
 - Manual run / force: the workflow supports a `workflow_dispatch` input named `force`. To force a run regardless of local time set `force` to `true` in the Actions UI, or run:
 
 ```bash

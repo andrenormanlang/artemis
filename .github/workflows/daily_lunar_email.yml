@@ -2,7 +2,7 @@ name: Daily lunar email (Neon)
 
 on:
   schedule:
-    - cron: "00 20,21 * * *"
+    - cron: "30 19,20 * * *"
   workflow_dispatch:
     inputs:
       force:
@@ -21,14 +21,14 @@ jobs:
         run: |
           echo "Europe/Stockholm now: $(TZ='Europe/Stockholm' date)"
           now=$(TZ='Europe/Stockholm' date +%s)
-          target=$(TZ='Europe/Stockholm' date -d "$(TZ='Europe/Stockholm' date +%F) 22:00:00" +%s)
+          target=$(TZ='Europe/Stockholm' date -d "$(TZ='Europe/Stockholm' date +%F) 21:30:00" +%s)
           diff=$(( now>target ? now-target : target-now ))
-          echo "Diff from 22:00: ${diff}s"
-          if [ "$diff" -le 3600 ]; then
+          echo "Diff from 21:30: ${diff}s"
+          if [ "$diff" -le 900 ]; then
             echo "run=true" >> $GITHUB_OUTPUT
           else
             echo "run=false" >> $GITHUB_OUTPUT
-            echo "Not within 60 min of 22:00 Stockholm — skipping."
+            echo "Not within 15 min of 21:30 Stockholm - skipping."
           fi
 
   daily_email:
