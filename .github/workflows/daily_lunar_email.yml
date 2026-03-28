@@ -24,11 +24,11 @@ jobs:
           local_minute=$(TZ='Europe/Stockholm' date +%M)
           echo "Europe/Stockholm now: $(TZ='Europe/Stockholm' date)"
           echo "Local time window check: ${local_time}"
-          if { [ "$local_hour" -eq 21 ] && [ "$local_minute" -ge 30 ]; } || { [ "$local_hour" -eq 22 ] && [ "$local_minute" -lt 15 ]; }; then
+          if { [ "$local_hour" -eq 21 ] && [ "$local_minute" -ge 25 ]; } || { [ "$local_hour" -eq 22 ] && [ "$local_minute" -lt 20 ]; }; then
             echo "run=true" >> $GITHUB_OUTPUT
           else
             echo "run=false" >> $GITHUB_OUTPUT
-            echo "Not within the 21:30-22:14 Stockholm delivery window - skipping."
+            echo "Not within the 21:25-22:19 Stockholm delivery window - skipping."
           fi
 
   daily_email:
