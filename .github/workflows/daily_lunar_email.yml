@@ -2,7 +2,7 @@ name: Daily lunar email (Neon)
 
 on:
   schedule:
-    - cron: "30 19,20 * * *"
+    - cron: "0,15,30,45 19,20,21 * * *"
   workflow_dispatch:
     inputs:
       force:
@@ -19,16 +19,16 @@ jobs:
       - name: Check local time (Europe/Stockholm)
         id: check_time
         run: |
+          local_time=$(TZ='Europe/Stockholm' date +%H:%M)
+          local_hour=$(TZ='Europe/Stockholm' date +%H)
+          local_minute=$(TZ='Europe/Stockholm' date +%M)
           echo "Europe/Stockholm now: $(TZ='Europe/Stockholm' date)"
-          now=$(TZ='Europe/Stockholm' date +%s)
-          target=$(TZ='Europe/Stockholm' date -d "$(TZ='Europe/Stockholm' date +%F) 21:30:00" +%s)
-          diff=$(( now>target ? now-target : target-now ))
-          echo "Diff from 21:30: ${diff}s"
-          if [ "$diff" -le 900 ]; then
+          echo "Local time window check: ${local_time}"
+          if { [ "$local_hour" -eq 21 ] && [ "$local_minute" -ge 30 ]; } || { [ "$local_hour" -eq 22 ] && [ "$local_minute" -lt 15 ]; }; then
             echo "run=true" >> $GITHUB_OUTPUT
           else
             echo "run=false" >> $GITHUB_OUTPUT
-            echo "Not within 15 min of 21:30 Stockholm - skipping."
+            echo "Not within the 21:30-22:14 Stockholm delivery window - skipping."
           fi
 
   daily_email:

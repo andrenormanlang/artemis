@@ -21,8 +21,8 @@ Notes:
 GitHub Actions scheduled run
 
 - The repository includes a workflow at `.github/workflows/daily_lunar_email.yml` which runs the daily email.
-- Schedule: the workflow is configured to trigger daily around **21:30 Europe/Stockholm** (DST-safe). Because GitHub cron uses UTC, the workflow cron is set to `30 19,20 * * *` (UTC) to cover DST transitions.
-- Tolerance: the workflow includes a local-time check and allows a **±15 minute** window around 21:30 to avoid missing runs due to minute-level scheduling jitter.
+- Schedule: the workflow is configured to trigger daily around **21:30 Europe/Stockholm** (DST-safe). Because GitHub cron uses UTC and scheduled runs can start late, the workflow now checks in every 15 minutes during the relevant UTC window with `0,15,30,45 19,20,21 * * *`.
+- Delivery window: the workflow only proceeds during the local **21:30-22:14 Europe/Stockholm** window, and the job-level dedupe prevents duplicate sends if more than one check lands inside that range.
 - Manual run / force: the workflow supports a `workflow_dispatch` input named `force`. To force a run regardless of local time set `force` to `true` in the Actions UI, or run:
 
 ```bash
