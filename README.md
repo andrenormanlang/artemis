@@ -4,6 +4,22 @@
 
 ## How to run the daily lunar email
 
+## Preview the email locally
+
+Start the Rails server in development:
+
+```bash
+bin/rails server
+```
+
+Then open the built-in mailer preview in your browser:
+
+```text
+/rails/mailers/user_data_mailer/daily_moon_email
+```
+
+The preview data lives in `test/mailers/previews/user_data_mailer_preview.rb`, so you can tweak the sample user or moon values there to test different layouts without sending a real email.
+
 To enqueue the daily lunar email job immediately:
 
     bin/rails cron:daily_lunar_email

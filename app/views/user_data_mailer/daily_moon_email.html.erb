@@ -6,204 +6,145 @@
 <% special_name = @moon_data.special_moon.presence || "Nenhuma lua especial" %>
 <% full_days = [(@moon_data.days_until_full_moon || 0).to_i, 0].max %>
 <% new_days = [(@moon_data.days_until_new_moon || 0).to_i, 0].max %>
-<% full_progress = [[100 - (full_days.fdiv(29.53) * 100).round, 100].min, 0].max %>
-<% new_progress = [[100 - (new_days.fdiv(29.53) * 100).round, 100].min, 0].max %>
 <% next_event_name, next_event_days = full_days <= new_days ? ["Lua cheia", full_days] : ["Lua nova", new_days] %>
 <% next_event_copy = case next_event_days
-                    when 0
-                      "#{next_event_name} hoje"
-                    when 1
-                      "#{next_event_name} amanhã"
-                    else
-                      "#{next_event_days} dias para a #{next_event_name.downcase}"
-                    end %>
+                     when 0 then "#{next_event_name} hoje"
+                     when 1 then "#{next_event_name} amanhã"
+                     else        "#{next_event_days} dias para a #{next_event_name.downcase}"
+                     end %>
 <% hero_copy = case next_event_days
-               when 0
-                 "A lua está em #{phase_name} e #{next_event_name.downcase} acontece hoje."
-               when 1
-                 "A lua está em #{phase_name} e #{next_event_name.downcase} chega amanhã."
-               else
-                 "A lua está em #{phase_name} e faltam #{next_event_days} dias para a #{next_event_name.downcase}."
+               when 0 then "A lua está em #{phase_name} e #{next_event_name.downcase} acontece hoje."
+               when 1 then "A lua está em #{phase_name} e #{next_event_name.downcase} chega amanhã."
+               else        "A lua está em #{phase_name} e faltam #{next_event_days} dias para a #{next_event_name.downcase}."
                end %>
 <% insight_title, insight_copy = case phase_name.downcase
-                                 when /nova/
-                                   ["Momento de recomeço", "Fase boa para plantar intenções, simplificar a agenda e abrir espaço para um novo ciclo."]
-                                 when /cheia/
-                                   ["Energia no auge", "Período favorável para celebrar progresso, concluir pendências e observar o que ficou mais visível."]
-                                 when /minguante/
-                                   ["Hora de desacelerar", "A maré pede revisão, fechamento e menos ruído. Um bom momento para ajustar o ritmo."]
-                                 when /crescente/
-                                   ["Fase de construção", "Clima ideal para ganhar consistência, retomar planos e sustentar o que já começou."]
-                                 else
-                                   ["Leitura lunar do dia", "Hoje vale observar o céu com calma e usar o boletim como bússola para o ritmo do seu dia."]
+                                 when /nova/      then ["Momento de recomeço", "Fase boa para plantar intenções, simplificar a agenda e abrir espaço para um novo ciclo."]
+                                 when /cheia/     then ["Energia no auge", "Período favorável para celebrar progresso, concluir pendências e observar o que ficou mais visível."]
+                                 when /minguante/ then ["Hora de desacelerar", "A maré pede revisão, fechamento e menos ruído. Um bom momento para ajustar o ritmo."]
+                                 when /crescente/ then ["Fase de construção", "Clima ideal para ganhar consistência, retomar planos e sustentar o que já começou."]
+                                 else                  ["Leitura lunar do dia", "Hoje vale observar o céu com calma e usar o boletim como bússola para o ritmo do seu dia."]
                                  end %>
 <% phase_icon = case phase_name.downcase
-                when /nova/
-                  "🌑"
-                when /cheia/
-                  "🌕"
-                when /minguante/
-                  "🌗"
-                when /crescente/
-                  "🌓"
-                else
-                  "🌙"
+                when /nova/                                    then "🌑"
+                when /quarto.*crescente/                       then "🌓"
+                when /gibosa.*crescente|crescente.*gibosa/     then "🌔"
+                when /crescente/                               then "🌒"
+                when /cheia/                                   then "🌕"
+                when /gibosa.*minguante|minguante.*gibosa/     then "🌖"
+                when /quarto.*minguante/                       then "🌗"
+                when /minguante/                               then "🌘"
+                else                                                "🌙"
                 end %>
-<% special_pill_class = special_name == "Nenhuma lua especial" ? "pill-neutral" : "pill-special" %>
+<% has_special = special_name != "Nenhuma lua especial" %>
 <% app_host = ENV["APP_HOST"].to_s.strip %>
 <% app_url = if app_host.present?
                normalized_host = app_host.match?(/\Ahttps?:\/\//i) ? app_host : "https://#{app_host}"
                "#{normalized_host.chomp("/")}/moon"
              end %>
 
-<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#07111f;">
-  <%= "#{phase_name} hoje. #{next_event_copy.capitalize} e leitura rápida do seu ciclo lunar." %>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap" rel="stylesheet">
+
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#07111f;">
+  <%= "#{phase_icon} #{phase_name} · #{next_event_copy.capitalize}." %>
 </div>
 
-<table role="presentation" width="100%" class="email-body">
+<table role="presentation" width="100%" style="background-color:#080e1a;margin:0;padding:0;">
   <tr>
-    <td align="center" style="padding: 24px 12px;">
-      <table role="presentation" width="100%" class="shell">
+    <td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="100%" style="max-width:520px;">
         <tr>
           <td>
-            <table role="presentation" width="100%" class="card">
-              <tr>
-                <td class="hero">
-                  <table role="presentation" width="100%" class="mobile-block">
-                    <tr>
-                      <td style="vertical-align: top;">
-                        <p class="eyebrow">Boletim Lunar • <%= report_date %></p>
-                        <h1 class="hero-title">Uma leitura mais clara da sua noite.</h1>
-                        <p class="lede">Olá, <strong><%= user_name %></strong>. <%= hero_copy %> Aqui vai o que realmente importa no céu de hoje, sem precisar abrir o app para entender tudo.</p>
-                      </td>
-                      <td width="104" align="right" class="moon-mark-wrap" style="vertical-align: top;">
-                        <span class="moon-mark"><%= phase_icon %></span>
-                      </td>
-                    </tr>
-                  </table>
+            <table role="presentation" width="100%" style="background-color:#0d1526;border-radius:16px;overflow:hidden;border:1px solid #1e2d4a;">
 
-                  <table role="presentation" width="100%" class="summary-card">
+              <%# ── Header bar ── %>
+              <tr>
+                <td style="padding:20px 28px 18px;border-bottom:1px solid #1a2640;">
+                  <table role="presentation" width="100%">
                     <tr>
                       <td>
-                        <p class="summary-label">Leitura de hoje</p>
-                        <p class="summary-value"><%= insight_title %></p>
-                        <p class="summary-copy"><%= insight_copy %></p>
+                        <span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:#4a6fa8;">Artemis</span>
+                      </td>
+                      <td align="right">
+                        <span style="font-family:'DM Sans',sans-serif;font-size:11px;color:#304563;letter-spacing:0.04em;"><%= report_date %></span>
                       </td>
                     </tr>
                   </table>
-
-                  <% if app_url.present? %>
-                    <div class="hero-actions">
-                      <a href="<%= app_url %>" class="button">Abrir Artemis</a>
-                      <span class="button-secondary">Veja o painel completo quando quiser explorar mais detalhes.</span>
-                    </div>
-                  <% end %>
                 </td>
               </tr>
 
+              <%# ── Hero ── %>
               <tr>
-                <td class="section">
-                  <p class="section-title">O que importa agora</p>
-                  <table role="presentation" width="100%" class="mobile-block">
+                <td style="padding:36px 28px 28px;">
+                  <p style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#3d5a80;margin:0 0 14px;">Fase atual</p>
+                  <p style="font-family:'Fraunces',Georgia,serif;font-size:38px;font-weight:300;color:#e8dfc8;margin:0 0 6px;line-height:1.1;letter-spacing:-0.01em;">
+                    <%= phase_icon %>&nbsp;<%= phase_name %>
+                  </p>
+                  <p style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:300;color:#6b85a6;margin:16px 0 0;line-height:1.6;">
+                    Olá, <span style="color:#a8bdd4;font-weight:500;"><%= user_name %></span>. <%= hero_copy %>
+                  </p>
+                </td>
+              </tr>
+
+              <%# ── Insight card ── %>
+              <tr>
+                <td style="padding:0 28px 28px;">
+                  <table role="presentation" width="100%" style="background-color:#0a1120;border-radius:10px;border:1px solid #1a2e4a;border-left:3px solid #c9a84c;">
                     <tr>
-                      <td width="33.33%" style="padding-right: 8px; vertical-align: top;">
-                        <table role="presentation" width="100%" class="metric-card">
-                          <tr>
-                            <td>
-                              <p class="metric-label">Fase atual</p>
-                              <p class="metric-value"><%= phase_name %></p>
-                              <p class="metric-note">Seu panorama lunar principal para hoje.</p>
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
-                      <td class="mobile-gap" style="width: 0; font-size: 0; line-height: 0;">&nbsp;</td>
-                      <td width="33.33%" style="padding-left: 4px; padding-right: 4px; vertical-align: top;">
-                        <table role="presentation" width="100%" class="metric-card">
-                          <tr>
-                            <td>
-                              <p class="metric-label">Signo lunar</p>
-                              <p class="metric-value"><span class="pill pill-sign"><%= sign_name %></span></p>
-                              <p class="metric-note">Um detalhe rápido para contextualizar o tom do dia.</p>
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
-                      <td class="mobile-gap" style="width: 0; font-size: 0; line-height: 0;">&nbsp;</td>
-                      <td width="33.33%" style="padding-left: 8px; vertical-align: top;">
-                        <table role="presentation" width="100%" class="metric-card">
-                          <tr>
-                            <td>
-                              <p class="metric-label">Título da lua</p>
-                              <p class="metric-value"><span class="pill <%= special_pill_class %>"><%= special_name %></span></p>
-                              <p class="metric-note">Destaque especial do ciclo, quando existir.</p>
-                            </td>
-                          </tr>
-                        </table>
+                      <td style="padding:18px 20px;">
+                        <p style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#c9a84c;margin:0 0 8px;">Hoje</p>
+                        <p style="font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:400;color:#d4c5a0;margin:0 0 8px;line-height:1.3;"><%= insight_title %></p>
+                        <p style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;color:#5a7396;margin:0;line-height:1.65;"><%= insight_copy %></p>
                       </td>
                     </tr>
                   </table>
                 </td>
               </tr>
 
+              <%# ── Data rows ── %>
               <tr>
-                <td class="section">
-                  <p class="section-title">Próximos marcos</p>
-                  <table role="presentation" width="100%" class="mobile-block">
+                <td style="padding:0 28px 28px;">
+                  <p style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#3d5a80;margin:0 0 14px;">Contagem</p>
+                  <table role="presentation" width="100%">
                     <tr>
-                      <td width="50%" style="padding-right: 8px; vertical-align: top;">
-                        <table role="presentation" width="100%" class="countdown-card">
-                          <tr>
-                            <td>
-                              <p class="countdown-label">Lua cheia</p>
-                              <p class="countdown-number"><%= full_days %></p>
-                              <p class="countdown-unit"><%= full_days == 1 ? "dia restante" : "dias restantes" %></p>
-                              <div class="progress-track">
-                                <div class="progress-fill-gold" style="width: <%= full_progress %>%;"></div>
-                              </div>
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
-                      <td class="mobile-gap" style="width: 0; font-size: 0; line-height: 0;">&nbsp;</td>
-                      <td width="50%" style="padding-left: 8px; vertical-align: top;">
-                        <table role="presentation" width="100%" class="countdown-card">
-                          <tr>
-                            <td>
-                              <p class="countdown-label">Lua nova</p>
-                              <p class="countdown-number"><%= new_days %></p>
-                              <p class="countdown-unit"><%= new_days == 1 ? "dia restante" : "dias restantes" %></p>
-                              <div class="progress-track">
-                                <div class="progress-fill-blue" style="width: <%= new_progress %>%;"></div>
-                              </div>
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
+                      <td style="font-family:'DM Sans',sans-serif;font-size:13px;color:#3d5a80;padding:9px 0;border-bottom:1px solid #131f33;font-weight:300;">Signo lunar</td>
+                      <td align="right" style="font-family:'DM Sans',sans-serif;font-size:13px;color:#8aa4c2;padding:9px 0;border-bottom:1px solid #131f33;font-weight:400;"><%= sign_name %></td>
                     </tr>
-                  </table>
-                </td>
-              </tr>
-
-              <tr>
-                <td class="section">
-                  <table role="presentation" width="100%" class="note-card">
+                    <% if has_special %>
                     <tr>
-                      <td>
-                        <p class="section-title" style="margin-bottom: 10px;">Resumo rápido</p>
-                        <p class="note-copy">Seu próximo destaque lunar é <strong><%= next_event_copy.downcase %></strong>. Este boletim foi pensado para ser escaneável em poucos segundos: primeiro o contexto, depois o que muda em seguida.</p>
+                      <td style="font-family:'DM Sans',sans-serif;font-size:13px;color:#3d5a80;padding:9px 0;border-bottom:1px solid #131f33;font-weight:300;">Lua especial</td>
+                      <td align="right" style="padding:9px 0;border-bottom:1px solid #131f33;">
+                        <span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:#c9a84c;background-color:#1d1608;border:1px solid #3d2e0a;border-radius:20px;padding:3px 10px;letter-spacing:0.03em;"><%= special_name %></span>
                       </td>
+                    </tr>
+                    <% end %>
+                    <tr>
+                      <td style="font-family:'DM Sans',sans-serif;font-size:13px;color:#3d5a80;padding:9px 0;border-bottom:1px solid #131f33;font-weight:300;">Lua cheia</td>
+                      <td align="right" style="font-family:'DM Sans',sans-serif;font-size:13px;color:#8aa4c2;padding:9px 0;border-bottom:1px solid #131f33;font-weight:400;"><%= full_days %> <%= full_days == 1 ? "dia" : "dias" %></td>
+                    </tr>
+                    <tr>
+                      <td style="font-family:'DM Sans',sans-serif;font-size:13px;color:#3d5a80;padding:9px 0;font-weight:300;">Lua nova</td>
+                      <td align="right" style="font-family:'DM Sans',sans-serif;font-size:13px;color:#8aa4c2;padding:9px 0;font-weight:400;"><%= new_days %> <%= new_days == 1 ? "dia" : "dias" %></td>
                     </tr>
                   </table>
                 </td>
               </tr>
 
+              <%# ── CTA ── %>
+              <% if app_url.present? %>
               <tr>
-                <td class="footer">
-                  <p class="footer-copy"><strong>Artemis</strong> • boletim diário enviado no seu horário de referência lunar.</p>
-                  <p class="footer-copy">© <%= stockholm_time.year %> Artemis. Feito para transformar dados da lua em uma leitura rápida, bonita e útil.</p>
+                <td style="padding:4px 28px 32px;">
+                  <a href="<%= app_url %>" style="display:inline-block;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.06em;color:#0d1526;background-color:#c9a84c;text-decoration:none;border-radius:8px;padding:12px 24px;">Abrir Artemis</a>
                 </td>
               </tr>
+              <% end %>
+
+              <%# ── Footer ── %>
+              <tr>
+                <td align="center" style="padding:16px 28px;border-top:1px solid #111d30;">
+                  <p style="font-family:'DM Sans',sans-serif;font-size:11px;color:#243448;margin:0;letter-spacing:0.04em;">© <%= stockholm_time.year %> Artemis</p>
+                </td>
+              </tr>
+
             </table>
           </td>
         </tr>
