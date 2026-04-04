@@ -19,9 +19,10 @@ class MoonsController < ApplicationController
   private
 
   def last_checked_moon
+    stockholm_today = Time.find_zone!("Europe/Stockholm").today
     moon_data = MoonData.find_by(latitude: session[:latitude],
                                longitude: session[:longitude],
-                               created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day)
+                               created_at: stockholm_today.beginning_of_day..stockholm_today.end_of_day)
     if moon_data.present?
       moon_data_presenter(moon_data.api_response)
     else
@@ -33,6 +34,7 @@ class MoonsController < ApplicationController
   end
 
   def moon_api_data
+    stockholm_today = Time.find_zone!("Europe/Stockholm").today
     moon_params = {
       "lat" => session[:latitude],
       "lon" => session[:longitude],
@@ -41,7 +43,7 @@ class MoonsController < ApplicationController
       "include_special" => true
     }
 
-    MoonApiService.new(DateTime.now, moon_params).call
+    MoonApiService.new(stockholm_today, moon_params).call
   end
 
 

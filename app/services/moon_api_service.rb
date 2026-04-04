@@ -14,7 +14,7 @@ class MoonApiService
       faraday.adapter Faraday.default_adapter
     end
     conn_response = connection.get do |req|
-      req.params = @params
+      req.params = request_params
       req.headers["x-api-key"] = ENV["ASTRO_API_KEY"]
     end
     conn_response.body
@@ -28,5 +28,9 @@ class MoonApiService
 
   def log_error(error)
     Rails.logger.error("API Consulta Error: #{error.message}")
+  end
+
+  def request_params
+    @params.merge("date" => @date.to_date.iso8601)
   end
 end
