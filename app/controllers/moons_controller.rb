@@ -34,7 +34,7 @@ class MoonsController < ApplicationController
   end
 
   def moon_api_data
-    stockholm_today = Time.find_zone!("Europe/Stockholm").today
+    stockholm_now = Time.find_zone!("Europe/Stockholm").now
     moon_params = {
       "lat" => session[:latitude],
       "lon" => session[:longitude],
@@ -43,12 +43,12 @@ class MoonsController < ApplicationController
       "include_special" => true
     }
 
-    MoonApiService.new(stockholm_today, moon_params).call
+    MoonApiService.new(stockholm_now, moon_params).call
   end
 
 
   def moon_data_presenter(moon_data)
     Rails.logger.info("Moon API Response: #{moon_data.inspect}")
-    MoonData::Index.new(moon_data.with_indifferent_access, latitude: session[:latitude], longitude: session[:longitude]).present
+    MoonData::Index.new(moon_data.with_indifferent_access, reference_date: Time.find_zone!("Europe/Stockholm").today, latitude: session[:latitude], longitude: session[:longitude]).present
   end
 end

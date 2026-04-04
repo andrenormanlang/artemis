@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe MoonApiService, type: :service, vcr: true do
   describe "#call" do
-    let(:date) { Date.new(2026, 4, 2) }
+    let(:date) { Time.new(2026, 4, 17, 21, 30, 0, "+02:00") }
     let(:params) do
       {
         "lat" => "40.7128",
@@ -39,7 +39,7 @@ RSpec.describe MoonApiService, type: :service, vcr: true do
       expect(response).to have_key("moon_visual")
       expect(response).to have_key("zodiac")
       expect(response).to have_key("special_moon")
-      expect(captured_params).to include("date" => "2026-04-02")
+      expect(captured_params).to include("date" => "2026-04-17T21:30:00")
     end
   end
 end

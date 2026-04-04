@@ -31,6 +31,6 @@ class MoonApiService
   end
 
   def request_params
-    @params.merge("date" => @date.to_date.iso8601)
+    @params.merge("date" => @date.strftime("%Y-%m-%dT%H:%M:%S"))
   end
 end

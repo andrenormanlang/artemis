@@ -15,7 +15,7 @@ class DailyLunarEmailJob < ApplicationJob
                                   created_at: stockholm_today.beginning_of_day..stockholm_today.end_of_day)
 
       if @moon_data.nil?
-        api_response = MoonApiService.new(stockholm_today, {
+        api_response = MoonApiService.new(Time.find_zone!("Europe/Stockholm").now, {
                                             "lat" => user.latitude,
                                             "lon" => user.longitude,
                                             "include_visuals" => true,
@@ -30,7 +30,7 @@ class DailyLunarEmailJob < ApplicationJob
           next
         end
 
-        presenter = MoonData::Index.new(api_response.with_indifferent_access, latitude: user.latitude, longitude: user.longitude).present
+        presenter = MoonData::Index.new(api_response.with_indifferent_access, reference_date: stockholm_today, latitude: user.latitude, longitude: user.longitude).present
         @moon_data = MoonData.create(presenter)
       end
 
