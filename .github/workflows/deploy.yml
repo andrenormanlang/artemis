@@ -1,13 +1,13 @@
 name: Deploy to AWS
 
-# Runs after the "CI" workflow finishes on main, and only if it succeeded, so we
-# never deploy a red build. Also runnable on demand via the Actions UI.
+# Deploys ONLY on a push/merge to main, and only if CI passed for that commit.
+# A PR merge is a push to main, so this covers both. There is intentionally no
+# manual (workflow_dispatch) trigger — main is the only path to a deploy.
 on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,8 +15,8 @@ permissions:
 jobs:
   deploy:
     name: Build & push image to ECR
-    # Deploy when CI passed, or when triggered manually.
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # Only when CI succeeded for the main commit.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     env:
       # Override via repository Variables (Settings -> Secrets and variables -> Actions -> Variables).
@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           # For workflow_run, check out the exact commit CI validated.
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -44,7 +44,7 @@ jobs:
       - name: Build and push image
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           IMAGE="$REGISTRY/$ECR_REPOSITORY"
@@ -61,7 +61,7 @@ jobs:
           {
             echo "### Deploy complete :rocket:"
             echo ""
-            echo "- Image: \`$ECR_REPOSITORY:${{ github.event.workflow_run.head_sha || github.sha }}\` (also tagged \`latest\`)"
+            echo "- Image: \`$ECR_REPOSITORY:${{ github.event.workflow_run.head_sha }}\` (also tagged \`latest\`)"
             echo "- Region: \`$AWS_REGION\`"
             echo "- The scheduled ECS task uses \`:latest\` and will pick this up on its next run."
           } >> "$GITHUB_STEP_SUMMARY"

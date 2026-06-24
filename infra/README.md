@@ -86,10 +86,11 @@ nada é enviado.
 
 ## CI/CD — deploy automático pelo GitHub Actions
 
-O workflow `.github/workflows/deploy.yml` roda **depois** do workflow `CI`
-(somente se ele passar, na branch `main`) e faz **build + push** da imagem para o
-ECR. Como a task definition aponta para a tag `:latest`, o próximo `RunTask`
-agendado já usa a nova imagem — não é preciso atualizar a task definition.
+O workflow `.github/workflows/deploy.yml` dispara **apenas** em push/merge na
+branch `main` e **somente se o `CI` passar** para aquele commit; faz **build +
+push** da imagem para o ECR. Não há disparo manual — `main` é o único caminho
+para um deploy. Como a task definition aponta para a tag `:latest`, o próximo
+`RunTask` agendado já usa a nova imagem — não é preciso atualizar a task definition.
 
 Configure em **Settings → Secrets and variables → Actions**:
 
@@ -98,5 +99,3 @@ Configure em **Settings → Secrets and variables → Actions**:
   `ecr:*Upload*`/`ecr:BatchCheckLayerAvailability`/`ecr:PutImage` no repositório).
 - **Variables** (opcionais; têm default): `AWS_REGION` (default `us-east-1`) e
   `ECR_REPOSITORY` (default `artemis`).
-
-Rodar manualmente: Actions → **Deploy to AWS** → *Run workflow*.
