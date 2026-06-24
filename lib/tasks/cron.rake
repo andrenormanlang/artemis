@@ -1,9 +1,10 @@
 namespace :cron do
-  desc "Enqueue daily lunar email job"
-  task daily_lunar_email: :environment do
-    # Enqueue the job to generate moon data and send daily emails to users.
-    # Uses ActiveJob adapter configured in the environment (Sidekiq, async, etc.).
-    puts "Starting DailyLunarEmailJob..."
+  desc "Run the lunar phase email job (sends only on a principal phase / special moon day)"
+  task lunar_phase_email: :environment do
+    # Runs the per-phase email job synchronously so a one-off invocation (ECS
+    # scheduled task) actually executes the work. On a normal day it detects no
+    # principal phase / special moon and exits without sending.
+    puts "Starting LunarPhaseEmailJob..."
     # If a DATABASE_URL is present, ensure ActiveRecord connects to it.
     if ENV["DATABASE_URL"]
       begin
@@ -18,8 +19,7 @@ namespace :cron do
       end
     end
 
-    # Run the job synchronously so a one-off rake invocation actually executes the work
-    DailyLunarEmailJob.perform_now
-    puts "DailyLunarEmailJob complete."
+    LunarPhaseEmailJob.perform_now
+    puts "LunarPhaseEmailJob complete."
   end
 end

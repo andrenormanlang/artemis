@@ -1,72 +1,44 @@
 class UserDataMailerPreview < ActionMailer::Preview
-  def daily_moon_email_nova
-    UserDataMailer.daily_moon_email(sample_user, sample_moon_data(
-      phase: "Lua nova",
+  def lunar_phase_email_nova
+    UserDataMailer.lunar_phase_email(sample_user, sample_moon_data(
+      phase: "Lua Nova",
+      raw_phase: "new_moon",
       days_until_full_moon: 15,
       days_until_new_moon: 0
     ))
   end
 
-  def daily_moon_email_crescente
-    UserDataMailer.daily_moon_email(sample_user, sample_moon_data(
-      phase: "Lua crescente",
-      days_until_full_moon: 11,
-      days_until_new_moon: 4
-    ))
-  end
-
-  def daily_moon_email_quarto_crescente
-    UserDataMailer.daily_moon_email(sample_user, sample_moon_data(
-      phase: "Quarto crescente",
+  def lunar_phase_email_quarto_crescente
+    UserDataMailer.lunar_phase_email(sample_user, sample_moon_data(
+      phase: "Primeiro Quarto",
+      raw_phase: "first_quarter",
       days_until_full_moon: 7,
       days_until_new_moon: 22
     ))
   end
 
-  def daily_moon_email_gibosa_crescente
-    UserDataMailer.daily_moon_email(sample_user, sample_moon_data(
-      phase: "Gibosa crescente",
-      days_until_full_moon: 4,
-      days_until_new_moon: 19
-    ))
-  end
-
-  def daily_moon_email_cheia
-    UserDataMailer.daily_moon_email(sample_user, sample_moon_data(
-      phase: "Lua cheia",
+  def lunar_phase_email_cheia
+    UserDataMailer.lunar_phase_email(sample_user, sample_moon_data(
+      phase: "Lua Cheia",
+      raw_phase: "full_moon",
       days_until_full_moon: 0,
       days_until_new_moon: 15,
-      special_moon: "Super Lua"
+      special_moon: "super lua"
     ))
   end
 
-  def daily_moon_email_gibosa_minguante
-    UserDataMailer.daily_moon_email(sample_user, sample_moon_data(
-      phase: "Gibosa minguante",
-      days_until_full_moon: 26,
-      days_until_new_moon: 11
-    ))
-  end
-
-  def daily_moon_email_quarto_minguante
-    UserDataMailer.daily_moon_email(sample_user, sample_moon_data(
-      phase: "Quarto minguante",
+  def lunar_phase_email_quarto_minguante
+    UserDataMailer.lunar_phase_email(sample_user, sample_moon_data(
+      phase: "Último Quarto",
+      raw_phase: "last_quarter",
       days_until_full_moon: 22,
       days_until_new_moon: 7
     ))
   end
 
-  def daily_moon_email_minguante
-    UserDataMailer.daily_moon_email(sample_user, sample_moon_data(
-      phase: "Lua minguante",
-      days_until_full_moon: 19,
-      days_until_new_moon: 4
-    ))
-  end
-
-  # Default preview — alias for gibosa crescente
-  def daily_moon_email
-    daily_moon_email_gibosa_crescente
+  # Default preview — alias para lua cheia
+  def lunar_phase_email
+    lunar_phase_email_cheia
   end
 
   private
@@ -76,15 +48,17 @@ class UserDataMailerPreview < ActionMailer::Preview
   end
 
   def sample_moon_data(overrides = {})
+    raw_phase = overrides.delete(:raw_phase) || "full_moon"
+
     MoonData.new({
-      phase: "Gibosa crescente",
+      phase: "Lua Cheia",
       sign: "Virgem",
       special_moon: "Nenhuma lua especial",
-      days_until_full_moon: 4,
-      days_until_new_moon: 19,
-      latitude: 59.3293,
-      longitude: 18.0686,
-      api_response: { preview: true }
+      days_until_full_moon: 0,
+      days_until_new_moon: 15,
+      latitude: -23.5505,
+      longitude: -46.6333,
+      api_response: { "phase" => { "name" => raw_phase }, "preview" => true }
     }.merge(overrides))
   end
 end

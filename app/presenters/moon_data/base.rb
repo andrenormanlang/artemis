@@ -30,7 +30,7 @@ class MoonData::Base
 
     special_moon.map do |key, label|
       special_moon_translation.call(key) if label == true
-    end.to_compact.join(", ")
+    end.compact.join(", ")
   end
 
   def translate_sign(sign)

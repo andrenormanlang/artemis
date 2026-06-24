@@ -1,10 +1,11 @@
 class UserDataMailer < ApplicationMailer
-  def daily_moon_email(user, moon_data)
+  def lunar_phase_email(user, moon_data)
     @user = user
     @moon_data = moon_data
-    stockholm_date = Time.find_zone!("Europe/Stockholm").today.strftime("%d/%m/%Y")
+    zone = Time.find_zone!(ENV.fetch("DELIVERY_TIME_ZONE", "Europe/Stockholm"))
+    report_date = zone.today.strftime("%d/%m/%Y")
     phase_name = @moon_data.phase.presence || "Seu céu de hoje"
 
-    mail(to: @user.email, subject: "🌙 #{phase_name} • Boletim Lunar #{stockholm_date}")
+    mail(to: @user.email, subject: "🌙 #{phase_name} • Boletim Lunar #{report_date}")
   end
 end

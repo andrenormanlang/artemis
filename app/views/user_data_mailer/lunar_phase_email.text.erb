@@ -1,5 +1,6 @@
-<% stockholm_time = Time.find_zone!("Europe/Stockholm").now %>
-<% report_date = stockholm_time.strftime("%d/%m/%Y") %>
+<% delivery_zone = Time.find_zone!(ENV.fetch("DELIVERY_TIME_ZONE", "Europe/Stockholm")) %>
+<% local_time = delivery_zone.now %>
+<% report_date = local_time.strftime("%d/%m/%Y") %>
 <% user_name = @user.name.presence || "explorador lunar" %>
 <% phase_name = @moon_data.phase.presence || "Sem fase definida" %>
 <% sign_name = @moon_data.sign.presence || "Sem signo definido" %>
@@ -12,6 +13,8 @@
                      when 1 then "#{next_event_name} amanhã"
                      else        "#{next_event_days} dias para a #{next_event_name.downcase}"
                      end %>
+<% tarot_title = @moon_data.tarot_title %>
+<% tarot_body = @moon_data.tarot_body %>
 <% has_special = special_name != "Nenhuma lua especial" %>
 <% app_host = ENV["APP_HOST"].to_s.strip %>
 <% app_url = if app_host.present?
@@ -23,6 +26,12 @@ ARTEMIS · <%= report_date %>
 
 Olá, <%= user_name %>.
 <%= next_event_copy.capitalize %>.
+
+─────────────────────
+TARÔ PARA ESTA FASE
+─────────────────────
+<%= tarot_title %>
+<%= tarot_body %>
 
 ─────────────────────
 HOJE
@@ -43,3 +52,5 @@ Nova    <%= new_days %> <%= new_days == 1 ? "dia" : "dias" %>
 ─────────────────────
 → <%= app_url %>
 <% end %>
+
+Orientação de tarô inspirada em <%= MoonData::TarotGuidance::SOURCE_NAME %>: <%= MoonData::TarotGuidance::SOURCE_URL %>
