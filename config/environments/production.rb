@@ -80,17 +80,27 @@ Rails.application.configure do
 
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_deliveries = true
-  config.action_mailer.delivery_method = :smtp
 
-  config.action_mailer.smtp_settings = {
-    address:              ENV["SMTP_ADDRESS"],
-    port:                 ENV["SMTP_PORT"],
-    domain:               ENV["SMTP_DOMAIN"],
-    user_name:            ENV["SMTP_USERNAME"],
-    password:             ENV["SMTP_PASSWORD"],
-    authentication:       ENV["SMTP_AUTHENTICATION"] || "plain",
-    enable_starttls_auto: true
-  }
+  # Entrega via AWS SES por padrão (credenciais vêm da IAM role da task ECS).
+  # Defina MAIL_DELIVERY_METHOD=smtp para voltar ao SMTP usando as SMTP_* vars.
+  delivery_method = ENV.fetch("MAIL_DELIVERY_METHOD", "ses").to_sym
+  config.action_mailer.delivery_method = delivery_method
+
+  if ENV["MAIL_FROM"].present?
+    config.action_mailer.default_options = { from: ENV["MAIL_FROM"] }
+  end
+
+  if delivery_method == :smtp
+    config.action_mailer.smtp_settings = {
+      address:              ENV["SMTP_ADDRESS"],
+      port:                 ENV["SMTP_PORT"],
+      domain:               ENV["SMTP_DOMAIN"],
+      user_name:            ENV["SMTP_USERNAME"],
+      password:             ENV["SMTP_PASSWORD"],
+      authentication:       ENV["SMTP_AUTHENTICATION"] || "plain",
+      enable_starttls_auto: true
+    }
+  end
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.

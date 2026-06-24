@@ -1,44 +1,20 @@
-name: Daily lunar email (Neon)
+name: Lunar phase email (manual only)
 
+# Scheduling moved to AWS (EventBridge Scheduler -> ECS Fargate -> SES).
+# See infra/ for the production cron. This workflow is kept only for manual,
+# on-demand runs (e.g. testing); it no longer runs on a schedule.
 on:
-  schedule:
-    - cron: "0,15,30,45 19,20,21 * * *"
   workflow_dispatch:
-    inputs:
-      force:
-        description: 'Force run regardless of Stockholm local time ("true" to force)'
-        required: false
-        default: "false"
 
 jobs:
-  gate:
-    runs-on: ubuntu-latest
-    outputs:
-      run: ${{ steps.check_time.outputs.run }}
-    steps:
-      - name: Check local time (Europe/Stockholm)
-        id: check_time
-        run: |
-          local_time=$(TZ='Europe/Stockholm' date +%H:%M)
-          local_hour=$(TZ='Europe/Stockholm' date +%H)
-          local_minute=$(TZ='Europe/Stockholm' date +%M)
-          echo "Europe/Stockholm now: $(TZ='Europe/Stockholm' date)"
-          echo "Local time window check: ${local_time}"
-          if { [ "$local_hour" -eq 21 ] && [ "$local_minute" -ge 25 ]; } || { [ "$local_hour" -eq 22 ] && [ "$local_minute" -lt 20 ]; }; then
-            echo "run=true" >> $GITHUB_OUTPUT
-          else
-            echo "run=false" >> $GITHUB_OUTPUT
-            echo "Not within the 21:25-22:19 Stockholm delivery window - skipping."
-          fi
-
-  daily_email:
-    needs: gate
-    if: needs.gate.outputs.run == 'true' || github.event.inputs.force == 'true'
+  lunar_email:
     runs-on: ubuntu-latest
     env:
       RAILS_ENV: production
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+      # Force SMTP here so a manual GH run does not require AWS credentials.
+      MAIL_DELIVERY_METHOD: smtp
       SMTP_ADDRESS: ${{ secrets.SMTP_ADDRESS }}
       SMTP_PORT: ${{ secrets.SMTP_PORT }}
       SMTP_DOMAIN: ${{ secrets.SMTP_DOMAIN }}
@@ -49,6 +25,7 @@ jobs:
       DAILY_LUNAR_API_URL: ${{ secrets.DAILY_LUNAR_API_URL }}
       ASTRO_API_KEY: ${{ secrets.ASTRO_API_KEY }}
       REDIS_URL: ${{ secrets.REDIS_URL }}
+      DELIVERY_TIME_ZONE: Europe/Stockholm
 
     steps:
       - uses: actions/checkout@v4
@@ -69,5 +46,5 @@ jobs:
       - name: Run DB migrations
         run: bundle exec rails db:migrate
 
-      - name: Send daily lunar email
-        run: bundle exec rails cron:daily_lunar_email
+      - name: Run lunar phase email
+        run: bundle exec rails cron:lunar_phase_email

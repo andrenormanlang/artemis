@@ -1,5 +1,5 @@
 :schedule:
-  daily_lunar_email:
-    cron: '30 21 * * *'
-    class: DailyLunarEmailJob
+  lunar_phase_email:
+    cron: '30 9 * * *'
+    class: LunarPhaseEmailJob
     tz: 'Europe/Stockholm'

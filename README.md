@@ -2,53 +2,65 @@
 
 <img width="560" height="671" alt="image" src="https://github.com/user-attachments/assets/78ef84a4-d235-4e12-a261-dd796878aaa7" />
 
-## How to run the daily lunar email
+## Lunar phase email (per-phase, not daily)
 
-## Preview the email locally
+The newsletter is **not** sent every day. It runs once per day on AWS and only
+sends an email on the **actual day of a principal moon phase** — Lua Nova,
+Primeiro Quarto, Lua Cheia, Último Quarto — or when there's a **special moon**
+(super lua, lua azul, etc.). On any other day the job detects no phase and
+exits without sending. Each email is in Brazilian Portuguese and includes the
+astronomical data plus per-phase **tarot reading guidance** (inspired by
+[Tarot with Gord](http://tarotwithgord.com/best-moon-phase-for-tarot-reading/)).
 
-Start the Rails server in development:
+How "the day of each phase" is detected: the job makes one call to the moon API
+and checks the current `phase.name`. The four principal phase names only appear
+on/around their exact instant, so `phase.name ∈ {new_moon, first_quarter,
+full_moon, last_quarter}` (or a non-empty `special_moon.labels`) marks a send
+day. Delivery date and the schedule use `DELIVERY_TIME_ZONE` (default
+`Europe/Stockholm`, which is the IANA zone covering Malmö).
+
+### Preview the email locally
 
 ```bash
 bin/rails server
 ```
 
-Then open the built-in mailer preview in your browser:
+Then open the built-in mailer preview (one variant per principal phase):
 
 ```text
-/rails/mailers/user_data_mailer/daily_moon_email
+/rails/mailers/user_data_mailer/lunar_phase_email_nova
+/rails/mailers/user_data_mailer/lunar_phase_email_quarto_crescente
+/rails/mailers/user_data_mailer/lunar_phase_email_cheia
+/rails/mailers/user_data_mailer/lunar_phase_email_quarto_minguante
 ```
 
-The preview data lives in `test/mailers/previews/user_data_mailer_preview.rb`, so you can tweak the sample user or moon values there to test different layouts without sending a real email.
+Preview data lives in `test/mailers/previews/user_data_mailer_preview.rb`.
 
-To enqueue the daily lunar email job immediately:
+### Run the job manually
 
-    bin/rails cron:daily_lunar_email
+    bin/rails cron:lunar_phase_email
 
 Or with rake/bundle in any environment:
 
-    bundle exec rake cron:daily_lunar_email RAILS_ENV=production
+    bundle exec rake cron:lunar_phase_email RAILS_ENV=production
 
 Notes:
 
-- The mailer and job use the Rails `ActionMailer` and `ActiveJob` settings in your environment files.
-- If you want a production scheduler, run Sidekiq with a scheduler (config/sidekiq_scheduler.yml and config/sidekiq.yml exist) or use system cron / Windows Task Scheduler to run the rake task daily.
-- The job now guards against duplicate sends per user for the same Europe/Stockholm date, so overlapping scheduler sources will not send two copies.
+- Email delivery uses `MAIL_DELIVERY_METHOD` (`ses` in production via the ECS
+  task IAM role; `smtp` as a fallback using the `SMTP_*` vars).
+- The job dedupes per user **per phase + date** (Redis), so overlapping runs
+  won't send two copies.
 
-GitHub Actions scheduled run
+### Production scheduling (AWS)
 
-- The repository includes a workflow at `.github/workflows/daily_lunar_email.yml` which runs the daily email.
-- Schedule: the workflow is configured to trigger daily around **21:30 Europe/Stockholm** (DST-safe). Because GitHub cron uses UTC and scheduled runs can start late, the workflow now checks in every 15 minutes during the relevant UTC window with `0,15,30,45 19,20,21 * * *`.
-- Delivery window: the workflow only proceeds during the local **21:30-22:14 Europe/Stockholm** window, and the job-level dedupe prevents duplicate sends if more than one check lands inside that range.
-- Manual run / force: the workflow supports a `workflow_dispatch` input named `force`. To force a run regardless of local time set `force` to `true` in the Actions UI, or run:
+Scheduling and sending run on AWS: **EventBridge Scheduler → ECS Fargate →
+SES**. The Fargate task runs `rake cron:lunar_phase_email` daily; the job
+decides whether today is a phase day. See [`infra/`](infra/README.md) for the
+Terraform and deploy steps (ECR, ECS, IAM, Secrets Manager, schedule).
 
-```bash
-gh workflow run daily_lunar_email.yml --ref main -f force=true
-```
-
-- Troubleshooting: if you do not receive email:
-  - Open the Actions run logs and look for the `Check local time` output and the rake task logs (`Starting DailyLunarEmailJob...`, `DailyLunarEmailJob complete.`).
-  - Verify GitHub repository Secrets (Settings → Secrets → Actions) contain: `DATABASE_URL`, `RAILS_MASTER_KEY`, `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_AUTHENTICATION`, `APP_HOST`, `DAILY_LUNAR_API_URL`, `ASTRO_API_KEY`, and `REDIS_URL`.
-  - If the workflow was skipped due to time mismatch, re-run with `force=true` as shown above.
+The old GitHub Actions **scheduled** run has been removed; the workflow at
+`.github/workflows/daily_lunar_email.yml` is now manual-only
+(`workflow_dispatch`) for ad-hoc testing.
 
 ## Sidekiq & Redis
 
@@ -74,7 +86,7 @@ bundle exec sidekiq -C config/sidekiq.yml
 
 4. Scheduling jobs
 
-- This repo includes `config/sidekiq_scheduler.yml` and `config/sidekiq.yml` — when Sidekiq starts the initializer will load the cron schedule (requires `sidekiq-cron`). Configure the cron there (they currently contain `daily_lunar_email`).
+- This repo includes `config/sidekiq_scheduler.yml` and `config/sidekiq.yml` — when Sidekiq starts the initializer will load the cron schedule (requires `sidekiq-cron`). Configure the cron there (they currently contain `lunar_phase_email`). Note: in production the AWS schedule in `infra/` is the source of truth; the job self-gates so a daily trigger only sends on a phase day.
 
 If you'd like, I can provision a small Upstash Redis instance for you and add the required secrets to the repo, or add Sidekiq deployment instructions for your hosting provider.
 

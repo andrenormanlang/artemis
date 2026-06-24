@@ -61,6 +61,12 @@ group :development, :test do
   gem "dotenv-rails"
 end
 
+group :production do
+  # Entrega de e-mail via AWS SES (registra os delivery methods :ses / :sesv2).
+  # Só é necessária em produção; o boot em prod carrega e registra o método.
+  gem "aws-sdk-rails", "~> 4.0"
+end
+
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"

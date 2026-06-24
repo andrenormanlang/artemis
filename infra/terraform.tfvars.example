@@ -1,0 +1,24 @@
+# Copie para terraform.tfvars e preencha. NÃO faça commit de terraform.tfvars.
+aws_region         = "us-east-1"
+project            = "artemis"
+image_tag          = "latest"
+
+delivery_time_zone = "Europe/Stockholm"
+schedule_expression = "cron(0 9 * * ? *)" # diariamente às 09:00 (no fuso acima)
+
+mail_from = "boletim@seudominio.com" # precisa estar verificado no SES
+app_host  = "artemis.seudominio.com"
+
+# Rede
+vpc_id           = "vpc-xxxxxxxx"
+subnet_ids       = ["subnet-aaaa", "subnet-bbbb"]
+assign_public_ip = true
+
+# Segredos no Secrets Manager (env var => nome do segredo)
+# secret_names = {
+#   RAILS_MASTER_KEY    = "artemis/rails_master_key"
+#   DATABASE_URL        = "artemis/database_url"
+#   ASTRO_API_KEY       = "artemis/astro_api_key"
+#   DAILY_LUNAR_API_URL = "artemis/daily_lunar_api_url"
+#   REDIS_URL           = "artemis/redis_url"
+# }

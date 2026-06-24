@@ -1,0 +1,67 @@
+name: Deploy to AWS
+
+# Deploys ONLY on a push/merge to main, and only if CI passed for that commit.
+# A PR merge is a push to main, so this covers both. There is intentionally no
+# manual (workflow_dispatch) trigger — main is the only path to a deploy.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build & push image to ECR
+    # Only when CI succeeded for the main commit.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      # Override via repository Variables (Settings -> Secrets and variables -> Actions -> Variables).
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY || 'artemis' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # For workflow_run, check out the exact commit CI validated.
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          IMAGE="$REGISTRY/$ECR_REPOSITORY"
+          docker build -t "$IMAGE:$IMAGE_TAG" -t "$IMAGE:latest" .
+          docker push "$IMAGE:$IMAGE_TAG"
+          docker push "$IMAGE:latest"
+          echo "Pushed $IMAGE:$IMAGE_TAG and :latest"
+
+      # The EventBridge-scheduled ECS task definition references the ":latest"
+      # tag, so the next scheduled (or manual) RunTask pulls this new image
+      # automatically — no task-definition update needed.
+      - name: Deploy summary
+        run: |
+          {
+            echo "### Deploy complete :rocket:"
+            echo ""
+            echo "- Image: \`$ECR_REPOSITORY:${{ github.event.workflow_run.head_sha }}\` (also tagged \`latest\`)"
+            echo "- Region: \`$AWS_REGION\`"
+            echo "- The scheduled ECS task uses \`:latest\` and will pick this up on its next run."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,5 +1,6 @@
-<% stockholm_time = Time.find_zone!("Europe/Stockholm").now %>
-<% report_date = stockholm_time.strftime("%d/%m/%Y") %>
+<% delivery_zone = Time.find_zone!(ENV.fetch("DELIVERY_TIME_ZONE", "Europe/Stockholm")) %>
+<% local_time = delivery_zone.now %>
+<% report_date = local_time.strftime("%d/%m/%Y") %>
 <% user_name = @user.name.presence || "explorador lunar" %>
 <% phase_name = @moon_data.phase.presence || "Sem fase definida" %>
 <% sign_name = @moon_data.sign.presence || "Sem signo definido" %>
@@ -17,25 +18,22 @@
                when 1 then "A lua está em #{phase_name} e #{next_event_name.downcase} chega amanhã."
                else        "A lua está em #{phase_name} e faltam #{next_event_days} dias para a #{next_event_name.downcase}."
                end %>
-<% insight_title, insight_copy = case phase_name.downcase
-                                 when /nova/      then ["Momento de recomeço", "Fase boa para plantar intenções, simplificar a agenda e abrir espaço para um novo ciclo."]
-                                 when /cheia/     then ["Energia no auge", "Período favorável para celebrar progresso, concluir pendências e observar o que ficou mais visível."]
-                                 when /minguante/ then ["Hora de desacelerar", "A maré pede revisão, fechamento e menos ruído. Um bom momento para ajustar o ritmo."]
-                                 when /crescente/ then ["Fase de construção", "Clima ideal para ganhar consistência, retomar planos e sustentar o que já começou."]
-                                 else                  ["Leitura lunar do dia", "Hoje vale observar o céu com calma e usar o boletim como bússola para o ritmo do seu dia."]
-                                 end %>
+<% insight_title = @moon_data.tarot_title %>
+<% insight_copy = @moon_data.tarot_body %>
 <% phase_icon = case phase_name.downcase
                 when /nova/                                    then "🌑"
-                when /quarto.*crescente/                       then "🌓"
+                when /quarto.*crescente|primeiro.*quarto/      then "🌓"
                 when /gibosa.*crescente|crescente.*gibosa/     then "🌔"
                 when /crescente/                               then "🌒"
                 when /cheia/                                   then "🌕"
                 when /gibosa.*minguante|minguante.*gibosa/     then "🌖"
-                when /quarto.*minguante/                       then "🌗"
+                when /quarto.*minguante|último.*quarto|ultimo.*quarto/ then "🌗"
                 when /minguante/                               then "🌘"
                 else                                                "🌙"
                 end %>
 <% has_special = special_name != "Nenhuma lua especial" %>
+<% tarot_source_url = MoonData::TarotGuidance::SOURCE_URL %>
+<% tarot_source_name = MoonData::TarotGuidance::SOURCE_NAME %>
 <% app_host = ENV["APP_HOST"].to_s.strip %>
 <% app_url = if app_host.present?
                normalized_host = app_host.match?(/\Ahttps?:\/\//i) ? app_host : "https://#{app_host}"
@@ -45,7 +43,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap" rel="stylesheet">
 
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#07111f;">
-  <%= "#{phase_icon} #{phase_name} · #{next_event_copy.capitalize}." %>
+  <%= "#{phase_icon} #{phase_name} · #{insight_title}." %>
 </div>
 
 <table role="presentation" width="100%" style="background-color:#080e1a;margin:0;padding:0;">
@@ -85,13 +83,13 @@
                 </td>
               </tr>
 
-              <%# ── Insight card ── %>
+              <%# ── Tarot insight card ── %>
               <tr>
                 <td style="padding:0 28px 28px;">
                   <table role="presentation" width="100%" style="background-color:#0a1120;border-radius:10px;border:1px solid #1a2e4a;border-left:3px solid #c9a84c;">
                     <tr>
                       <td style="padding:18px 20px;">
-                        <p style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#c9a84c;margin:0 0 8px;">Hoje</p>
+                        <p style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#c9a84c;margin:0 0 8px;">Tarô para esta fase</p>
                         <p style="font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:400;color:#d4c5a0;margin:0 0 8px;line-height:1.3;"><%= insight_title %></p>
                         <p style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;color:#5a7396;margin:0;line-height:1.65;"><%= insight_copy %></p>
                       </td>
@@ -141,7 +139,10 @@
               <%# ── Footer ── %>
               <tr>
                 <td align="center" style="padding:16px 28px;border-top:1px solid #111d30;">
-                  <p style="font-family:'DM Sans',sans-serif;font-size:11px;color:#243448;margin:0;letter-spacing:0.04em;">© <%= stockholm_time.year %> Artemis</p>
+                  <p style="font-family:'DM Sans',sans-serif;font-size:11px;color:#3d5a80;margin:0 0 6px;letter-spacing:0.02em;line-height:1.5;">
+                    Orientação de tarô inspirada em <a href="<%= tarot_source_url %>" style="color:#6b85a6;text-decoration:underline;"><%= tarot_source_name %></a>.
+                  </p>
+                  <p style="font-family:'DM Sans',sans-serif;font-size:11px;color:#243448;margin:0;letter-spacing:0.04em;">© <%= local_time.year %> Artemis</p>
                 </td>
               </tr>
 
