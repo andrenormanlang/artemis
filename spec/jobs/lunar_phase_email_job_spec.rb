@@ -31,7 +31,7 @@ RSpec.describe LunarPhaseEmailJob, type: :job do
       expect { described_class.new.perform }.to change { ActionMailer::Base.deliveries.size }.by(1)
 
       mail = ActionMailer::Base.deliveries.last
-      expect(mail.to).to eq([user.email])
+      expect(mail.to).to eq([ user.email ])
       expect(mail.subject).to include("Boletim Lunar")
     end
   end
@@ -46,7 +46,7 @@ RSpec.describe LunarPhaseEmailJob, type: :job do
 
   context "on a special-moon day even without a principal phase" do
     it "still sends" do
-      stub_api(api_response(phase_name: "waning_gibbous", labels: ["is_supermoon"]))
+      stub_api(api_response(phase_name: "waning_gibbous", labels: [ "is_supermoon" ]))
 
       expect { described_class.new.perform }.to change { ActionMailer::Base.deliveries.size }.by(1)
     end
