@@ -62,6 +62,39 @@ The old GitHub Actions **scheduled** run has been removed; the workflow at
 `.github/workflows/daily_lunar_email.yml` is now manual-only
 (`workflow_dispatch`) for ad-hoc testing.
 
+## Subscriptions (sign-up & unsubscribe)
+
+The **homepage (`/`) is the sign-up form** for the newsletter. The flow is
+**double opt-in**:
+
+1. A visitor submits their e-mail at `/` (`subscribers#new`).
+2. We create an **unconfirmed** `User` and send a confirmation e-mail
+   (`SubscriptionMailer#confirmation`) with a tokenized link.
+3. Clicking the link (`/subscribe/confirm/:token`) sets `confirmed_at`.
+4. Only **confirmed, non-unsubscribed** users receive the boletim — the cron
+   job is scoped to `User.subscribed`.
+
+Every lunar e-mail includes a tokenized **unsubscribe** link
+(`/unsubscribe/:token`), which sets `unsubscribed_at` and stops future sends.
+
+Other details:
+
+- **Geolocation:** the form uses a small Stimulus controller
+  (`geolocation_controller.js`) to fill hidden `latitude`/`longitude` fields
+  from the browser. It's optional — if the user denies access it falls back to
+  a default location (`User::DEFAULT_LATITUDE`/`LONGITUDE`). Moon phase is
+  global, so coordinates only affect minor per-location details (sign, etc.).
+- **Bots:** a hidden honeypot field silently drops spam submissions.
+- **Schema:** `users` gains `confirmation_token`, `unsubscribe_token`,
+  `confirmed_at`, `unsubscribed_at` (see the migration). Run `rails db:migrate`
+  when deploying.
+- **Deliverability:** while SES is in the sandbox, only *verified* recipients
+  receive mail — request SES production access before opening sign-ups to the
+  public. A `@gmail.com` "From" address will land in spam for other recipients;
+  use a domain you control with DKIM/SPF for real delivery.
+
+The moon dashboard is still available at `/moon`.
+
 ## Sidekiq & Redis
 
 This project supports using Sidekiq for background processing and scheduled jobs.
