@@ -81,9 +81,10 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_deliveries = true
 
-  # Entrega via AWS SES por padrão (credenciais vêm da IAM role da task ECS).
-  # Defina MAIL_DELIVERY_METHOD=smtp para voltar ao SMTP usando as SMTP_* vars.
-  delivery_method = ENV.fetch("MAIL_DELIVERY_METHOD", "ses").to_sym
+  # SMTP por padrão (web app no Render usa as SMTP_* vars). A task ECS define
+  # MAIL_DELIVERY_METHOD=ses explicitamente (via Terraform) para usar o SES com
+  # a IAM role. SES só funciona onde há credenciais AWS — não no Render.
+  delivery_method = ENV.fetch("MAIL_DELIVERY_METHOD", "smtp").to_sym
   config.action_mailer.delivery_method = delivery_method
 
   if ENV["MAIL_FROM"].present?
