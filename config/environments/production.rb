@@ -81,9 +81,12 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_deliveries = true
 
-  # SMTP por padrão (web app no Render usa as SMTP_* vars). A task ECS define
-  # MAIL_DELIVERY_METHOD=ses explicitamente (via Terraform) para usar o SES com
-  # a IAM role. SES só funciona onde há credenciais AWS — não no Render.
+  # Delivery method, chosen for where the app runs:
+  # - Render blocks outbound SMTP ports (25/465/587), so set
+  #   MAIL_DELIVERY_METHOD=ses there and provide AWS_REGION + AWS credentials —
+  #   SES sends over HTTPS (port 443), which Render allows.
+  # - The ECS Fargate task also uses :ses (via its IAM role, set in Terraform).
+  # - Local/other hosts default to plain SMTP.
   delivery_method = ENV.fetch("MAIL_DELIVERY_METHOD", "smtp").to_sym
   config.action_mailer.delivery_method = delivery_method
 
