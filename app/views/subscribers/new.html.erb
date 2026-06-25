@@ -1,0 +1,39 @@
+<div style="min-height:100vh;background-color:#080e1a;display:flex;align-items:center;justify-content:center;padding:32px 16px;font-family:'DM Sans',-apple-system,Segoe UI,sans-serif;">
+  <div style="width:100%;max-width:440px;background-color:#0d1526;border:1px solid #1e2d4a;border-radius:16px;padding:36px 32px;">
+    <p style="font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#3d5a80;margin:0 0 12px;">Artemis</p>
+    <h1 style="font-family:Georgia,serif;font-size:28px;font-weight:300;color:#e8dfc8;margin:0 0 10px;line-height:1.2;">🌙 Boletim Lunar</h1>
+    <p style="font-size:14px;font-weight:300;color:#6b85a6;margin:0 0 24px;line-height:1.6;">
+      Receba um e-mail a cada fase principal da lua (Nova, Quarto Crescente, Cheia, Quarto Minguante), com orientações de tarô em português.
+    </p>
+
+    <% if flash[:alert].present? %>
+      <p style="font-size:13px;color:#e0a3a3;background:#2a1414;border:1px solid #4d2020;border-radius:8px;padding:10px 12px;margin:0 0 18px;"><%= flash[:alert] %></p>
+    <% end %>
+
+    <%= form_with url: subscribers_path, method: :post do |f| %>
+      <%# Honeypot — hidden from humans, bots tend to fill it %>
+      <div style="position:absolute;left:-9999px;" aria-hidden="true">
+        <label>Não preencha este campo
+          <%= text_field_tag :nickname, nil, tabindex: -1, autocomplete: "off" %>
+        </label>
+      </div>
+
+      <label style="display:block;font-size:12px;color:#8aa4c2;margin:0 0 6px;">Seu e-mail</label>
+      <%= email_field_tag "user[email]", params.dig(:user, :email),
+            required: true, placeholder: "voce@exemplo.com",
+            style: "width:100%;box-sizing:border-box;padding:12px 14px;margin:0 0 16px;background:#0a1120;border:1px solid #1e2d4a;border-radius:8px;color:#e8dfc8;font-size:14px;" %>
+
+      <label style="display:block;font-size:12px;color:#8aa4c2;margin:0 0 6px;">Nome (opcional)</label>
+      <%= text_field_tag "user[name]", params.dig(:user, :name),
+            placeholder: "Como devemos te chamar?",
+            style: "width:100%;box-sizing:border-box;padding:12px 14px;margin:0 0 22px;background:#0a1120;border:1px solid #1e2d4a;border-radius:8px;color:#e8dfc8;font-size:14px;" %>
+
+      <%= submit_tag "Quero receber",
+            style: "width:100%;font-size:14px;font-weight:500;letter-spacing:0.04em;color:#0d1526;background:#c9a84c;border:none;border-radius:8px;padding:13px;cursor:pointer;" %>
+    <% end %>
+
+    <p style="font-size:11px;color:#243448;margin:18px 0 0;line-height:1.6;">
+      Enviaremos um e-mail de confirmação antes de incluir você na lista. Você pode cancelar a qualquer momento.
+    </p>
+  </div>
+</div>

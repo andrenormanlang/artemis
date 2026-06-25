@@ -5,7 +5,9 @@ RSpec.describe LunarPhaseEmailJob, type: :job do
   # (rolled back by transactional fixtures after each example).
   let!(:user) do
     User.delete_all
-    User.create!(name: "Luna", email: "luna@example.com", latitude: -23.5505, longitude: -46.6333)
+    # Confirmed subscriber — only these receive the boletim.
+    User.create!(name: "Luna", email: "luna@example.com", latitude: -23.5505, longitude: -46.6333,
+                 confirmed_at: Time.current)
   end
 
   def api_response(phase_name:, labels: [])

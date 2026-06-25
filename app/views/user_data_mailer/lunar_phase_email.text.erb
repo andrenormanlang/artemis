@@ -54,3 +54,7 @@ Nova    <%= new_days %> <%= new_days == 1 ? "dia" : "dias" %>
 <% end %>
 
 Orientação de tarô inspirada em <%= MoonData::TarotGuidance::SOURCE_NAME %>: <%= MoonData::TarotGuidance::SOURCE_URL %>
+<% if @user.respond_to?(:unsubscribe_token) && @user.unsubscribe_token.present? %>
+
+Cancelar inscrição: <%= unsubscribe_url(token: @user.unsubscribe_token) %>
+<% end %>
