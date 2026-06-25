@@ -142,9 +142,9 @@
                   <p style="font-family:'DM Sans',sans-serif;font-size:11px;color:#3d5a80;margin:0 0 6px;letter-spacing:0.02em;line-height:1.5;">
                     Orientação de tarô inspirada em <a href="<%= tarot_source_url %>" style="color:#6b85a6;text-decoration:underline;"><%= tarot_source_name %></a>.
                   </p>
-                  <% if @user.respond_to?(:unsubscribe_token) && @user.unsubscribe_token.present? %>
+                  <% if @unsubscribe_url.present? %>
                   <p style="font-family:'DM Sans',sans-serif;font-size:11px;color:#3d5a80;margin:0 0 6px;letter-spacing:0.02em;line-height:1.5;">
-                    Não quer mais receber? <a href="<%= unsubscribe_url(token: @user.unsubscribe_token) %>" style="color:#6b85a6;text-decoration:underline;">Cancelar inscrição</a>.
+                    Não quer mais receber? <a href="<%= @unsubscribe_url %>" style="color:#6b85a6;text-decoration:underline;">Cancelar inscrição</a>.
                   </p>
                   <% end %>
                   <p style="font-family:'DM Sans',sans-serif;font-size:11px;color:#243448;margin:0;letter-spacing:0.04em;">© <%= local_time.year %> Artemis</p>
