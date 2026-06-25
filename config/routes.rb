@@ -13,6 +13,7 @@ Rails.application.routes.draw do
 
   # Inscrição no boletim lunar (double opt-in + cancelamento)
   resources :subscribers, only: [ :new, :create ]
+  get "inscricao/obrigado", to: "subscribers#thanks", as: :subscriber_thanks
   get "subscribe/confirm/:token", to: "subscribers#confirm", as: :confirm_subscription
   get "unsubscribe/:token", to: "subscribers#unsubscribe", as: :unsubscribe
 

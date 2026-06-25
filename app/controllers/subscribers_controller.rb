@@ -6,15 +6,20 @@ class SubscribersController < ApplicationController
     @user = User.new
   end
 
+  def thanks
+  end
+
   def create
     # Honeypot: real users never fill this hidden field; bots do.
-    return render(:thanks) if params[:nickname].present?
+    return redirect_to(subscriber_thanks_path, status: :see_other) if params[:nickname].present?
 
     email = params.dig(:user, :email).to_s.strip.downcase
     @user = User.find_or_initialize_by(email: email)
 
     # Already an active subscriber → neutral response (no email enumeration).
-    return render(:thanks) if @user.persisted? && @user.confirmed? && !@user.unsubscribed?
+    if @user.persisted? && @user.confirmed? && !@user.unsubscribed?
+      return redirect_to(subscriber_thanks_path, status: :see_other)
+    end
 
     @user.name = params.dig(:user, :name).presence if @user.new_record?
 
@@ -28,7 +33,7 @@ class SubscribersController < ApplicationController
 
     if @user.save
       SubscriptionMailer.confirmation(@user).deliver_now
-      render :thanks
+      redirect_to subscriber_thanks_path, status: :see_other
     else
       flash.now[:alert] = @user.errors.full_messages.to_sentence
       render :new, status: :unprocessable_entity

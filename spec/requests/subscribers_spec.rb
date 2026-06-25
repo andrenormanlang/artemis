@@ -17,6 +17,8 @@ RSpec.describe "Subscribers", type: :request do
       post subscribers_path, params: { user: { email: "New@Example.com" } }
     end.to change(User, :count).by(1)
 
+    expect(response).to redirect_to(subscriber_thanks_path)
+
     user = User.last
     expect(user.email).to eq("new@example.com")
     expect(user.confirmed?).to be false
