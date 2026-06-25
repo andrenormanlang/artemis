@@ -44,7 +44,7 @@ class UserDataMailerPreview < ActionMailer::Preview
   private
 
   def sample_user
-    User.new(name: "Luna Tester", email: "preview@example.com")
+    User.new(name: "Luna Tester", email: "preview@example.com", unsubscribe_token: "preview-token")
   end
 
   def sample_moon_data(overrides = {})

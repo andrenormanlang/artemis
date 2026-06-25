@@ -1,0 +1,25 @@
+<% user_name = @user.name.presence || "explorador lunar" %>
+
+<table role="presentation" width="100%" style="background-color:#080e1a;margin:0;padding:0;">
+  <tr>
+    <td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="100%" style="max-width:520px;background-color:#0d1526;border-radius:16px;border:1px solid #1e2d4a;">
+        <tr>
+          <td style="padding:32px 28px;">
+            <p style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#3d5a80;margin:0 0 14px;">Boletim Lunar Artemis</p>
+            <p style="font-family:Georgia,serif;font-size:26px;font-weight:300;color:#e8dfc8;margin:0 0 16px;line-height:1.2;">🌙 Confirme sua inscrição</p>
+            <p style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:300;color:#6b85a6;margin:0 0 24px;line-height:1.6;">
+              Olá, <span style="color:#a8bdd4;font-weight:500;"><%= user_name %></span>. Falta um passo para receber o boletim lunar a cada fase principal da lua, com orientações de tarô em português. Clique abaixo para confirmar:
+            </p>
+            <p style="margin:0 0 24px;">
+              <a href="<%= @confirm_url %>" style="display:inline-block;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;letter-spacing:0.04em;color:#0d1526;background-color:#c9a84c;text-decoration:none;border-radius:8px;padding:13px 26px;">Confirmar inscrição</a>
+            </p>
+            <p style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:300;color:#3d5a80;margin:0;line-height:1.6;">
+              Se você não pediu esta inscrição, basta ignorar este e-mail — nada será enviado sem a sua confirmação.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

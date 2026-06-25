@@ -90,6 +90,15 @@ Rails.application.configure do
     config.action_mailer.default_options = { from: ENV["MAIL_FROM"] }
   end
 
+  # Host for URLs generated in mailers (confirmation / unsubscribe links).
+  if ENV["APP_HOST"].present?
+    raw_host = ENV["APP_HOST"].strip
+    config.action_mailer.default_url_options = {
+      host: raw_host.sub(%r{\Ahttps?://}i, "").chomp("/"),
+      protocol: raw_host.match?(/\Ahttp:\/\//i) ? "http" : "https"
+    }
+  end
+
   if delivery_method == :smtp
     config.action_mailer.smtp_settings = {
       address:              ENV["SMTP_ADDRESS"],

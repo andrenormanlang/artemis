@@ -10,6 +10,12 @@ Rails.application.routes.draw do
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
   resources :moon, controller: :moons, only: [ :index ]
-  # Redirect root to /moon
-  root to: "moons#index"
+
+  # Inscrição no boletim lunar (double opt-in + cancelamento)
+  resources :subscribers, only: [ :new, :create ]
+  get "subscribe/confirm/:token", to: "subscribers#confirm", as: :confirm_subscription
+  get "unsubscribe/:token", to: "subscribers#unsubscribe", as: :unsubscribe
+
+  # Sign-up page is the homepage
+  root to: "subscribers#new"
 end

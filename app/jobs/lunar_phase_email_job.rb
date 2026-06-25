@@ -29,7 +29,8 @@ class LunarPhaseEmailJob < ApplicationJob
     phase_key = gate[:phase_name].presence || "special_moon"
     Rails.logger.info("LunarPhaseEmailJob: phase day on #{ref_date} (phase=#{phase_key}, special=#{gate[:special]}); sending boletim")
 
-    User.find_each do |user|
+    # Only confirmed, non-unsubscribed recipients (double opt-in).
+    User.subscribed.find_each do |user|
       send_for(user, ref_time, ref_date, phase_key)
     end
   end
