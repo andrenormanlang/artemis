@@ -16,11 +16,13 @@ class SubscribersController < ApplicationController
     # Already an active subscriber → neutral response (no email enumeration).
     return render(:thanks) if @user.persisted? && @user.confirmed? && !@user.unsubscribed?
 
-    if @user.new_record?
-      @user.name = params.dig(:user, :name).presence
-      @user.latitude ||= User::DEFAULT_LATITUDE
-      @user.longitude ||= User::DEFAULT_LONGITUDE
-    end
+    @user.name = params.dig(:user, :name).presence if @user.new_record?
+
+    # Coordinates from the browser's geolocation (optional) → fall back to any
+    # existing value, then to the default location.
+    @user.latitude = params.dig(:user, :latitude).presence || @user.latitude || User::DEFAULT_LATITUDE
+    @user.longitude = params.dig(:user, :longitude).presence || @user.longitude || User::DEFAULT_LONGITUDE
+
     # Re-subscribing or still unconfirmed: (re)send the confirmation.
     @user.unsubscribed_at = nil
 

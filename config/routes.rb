@@ -16,6 +16,6 @@ Rails.application.routes.draw do
   get "subscribe/confirm/:token", to: "subscribers#confirm", as: :confirm_subscription
   get "unsubscribe/:token", to: "subscribers#unsubscribe", as: :unsubscribe
 
-  # Redirect root to /moon
-  root to: "moons#index"
+  # Sign-up page is the homepage
+  root to: "subscribers#new"
 end

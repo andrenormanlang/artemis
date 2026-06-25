@@ -26,6 +26,20 @@ RSpec.describe "Subscribers", type: :request do
     expect(mail.subject).to include("Confirme")
   end
 
+  it "stores coordinates from the form when provided" do
+    post subscribers_path, params: { user: { email: "geo@example.com", latitude: "55.6049", longitude: "13.0038" } }
+    user = User.find_by(email: "geo@example.com")
+    expect(user.latitude).to eq(55.6049)
+    expect(user.longitude).to eq(13.0038)
+  end
+
+  it "falls back to default coordinates when none are provided" do
+    post subscribers_path, params: { user: { email: "nogeo@example.com" } }
+    user = User.find_by(email: "nogeo@example.com")
+    expect(user.latitude).to eq(User::DEFAULT_LATITUDE)
+    expect(user.longitude).to eq(User::DEFAULT_LONGITUDE)
+  end
+
   it "ignores honeypot submissions" do
     expect do
       post subscribers_path, params: { user: { email: "bot@example.com" }, nickname: "spam" }
