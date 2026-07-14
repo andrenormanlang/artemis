@@ -67,16 +67,17 @@ variable "assign_public_ip" {
   default     = true
 }
 
-# Mapa: NOME_DA_ENV_VAR => nome do segredo no Secrets Manager.
-# A execution role lê estes segredos e os injeta na task.
+# Mapa: NOME_DA_ENV_VAR => nome do parâmetro no SSM Parameter Store
+# (SecureString, tier standard — sem custo, ao contrário do Secrets Manager).
+# A execution role lê estes parâmetros e os injeta na task. Nomes com "/" inicial.
 variable "secret_names" {
-  description = "Segredos a injetar (env var => Secrets Manager secret name)"
+  description = "Segredos a injetar (env var => nome do parâmetro SSM, com / inicial)"
   type        = map(string)
   default = {
-    RAILS_MASTER_KEY    = "artemis/rails_master_key"
-    DATABASE_URL        = "artemis/database_url"
-    ASTRO_API_KEY       = "artemis/astro_api_key"
-    DAILY_LUNAR_API_URL = "artemis/daily_lunar_api_url"
-    REDIS_URL           = "artemis/redis_url"
+    RAILS_MASTER_KEY    = "/artemis/rails_master_key"
+    DATABASE_URL        = "/artemis/database_url"
+    ASTRO_API_KEY       = "/artemis/astro_api_key"
+    DAILY_LUNAR_API_URL = "/artemis/daily_lunar_api_url"
+    REDIS_URL           = "/artemis/redis_url"
   }
 }

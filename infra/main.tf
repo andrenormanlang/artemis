@@ -61,11 +61,14 @@ resource "aws_cloudwatch_log_group" "task" {
 }
 
 ###############################################################################
-# Segredos (criados fora do Terraform; aqui só referenciamos por ARN)
+# Segredos: SSM Parameter Store (SecureString, tier standard — gratuito).
+# Criados fora do Terraform (aws ssm put-parameter); aqui só montamos os ARNs.
 ###############################################################################
-data "aws_secretsmanager_secret" "secrets" {
-  for_each = var.secret_names
-  name     = each.value
+locals {
+  ssm_parameter_arns = {
+    for key, name in var.secret_names :
+    key => "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter${name}"
+  }
 }
 
 ###############################################################################
@@ -94,8 +97,8 @@ resource "aws_iam_role_policy_attachment" "execution_managed" {
 
 data "aws_iam_policy_document" "execution_secrets" {
   statement {
-    actions   = ["secretsmanager:GetSecretValue"]
-    resources = [for s in data.aws_secretsmanager_secret.secrets : s.arn]
+    actions   = ["ssm:GetParameters"]
+    resources = values(local.ssm_parameter_arns)
   }
 }
 
@@ -165,9 +168,9 @@ resource "aws_ecs_task_definition" "email" {
       ]
 
       secrets = [
-        for key, secret_name in var.secret_names : {
+        for key, parameter_name in var.secret_names : {
           name      = key
-          valueFrom = data.aws_secretsmanager_secret.secrets[key].arn
+          valueFrom = local.ssm_parameter_arns[key]
         }
       ]
 
