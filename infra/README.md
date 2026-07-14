@@ -18,15 +18,19 @@ de saída de rede para alcançá-los.
 
 1. **SES**: verifique o domínio/e-mail remetente e **saia do sandbox** (Production
    access) para enviar a destinatários arbitrários. Anote o `MAIL_FROM`.
-2. **Secrets Manager**: crie os segredos referenciados em `secret_names`:
+2. **SSM Parameter Store**: crie os parâmetros referenciados em `secret_names`
+   (SecureString, tier standard — **sem custo**, ao contrário do Secrets Manager,
+   que cobra US$ 0,40/segredo/mês):
 
    ```bash
-   aws secretsmanager create-secret --name artemis/rails_master_key    --secret-string "$(cat ../config/master.key)"
-   aws secretsmanager create-secret --name artemis/database_url         --secret-string "postgres://...neon..."
-   aws secretsmanager create-secret --name artemis/astro_api_key        --secret-string "..."
-   aws secretsmanager create-secret --name artemis/daily_lunar_api_url  --secret-string "https://api.freeastroapi.com/api/v1/moon/phase"
-   aws secretsmanager create-secret --name artemis/redis_url            --secret-string "rediss://..."
+   aws ssm put-parameter --name /artemis/rails_master_key    --type SecureString --value "$(cat ../config/master.key)"
+   aws ssm put-parameter --name /artemis/database_url         --type SecureString --value "postgres://...neon..."
+   aws ssm put-parameter --name /artemis/astro_api_key        --type SecureString --value "..."
+   aws ssm put-parameter --name /artemis/daily_lunar_api_url  --type SecureString --value "https://api.freeastroapi.com/api/v1/moon/phase"
+   aws ssm put-parameter --name /artemis/redis_url            --type SecureString --value "rediss://..."
    ```
+
+   Para atualizar um valor depois, acrescente `--overwrite`.
 
 3. **Rede**: tenha um `vpc_id` e `subnet_ids` com saída à internet (subnet pública
    + `assign_public_ip = true`, ou subnet privada + NAT Gateway).
