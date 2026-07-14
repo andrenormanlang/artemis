@@ -15,7 +15,7 @@ class LunarPhaseEmailJob < ApplicationJob
     ref_time = zone.now
     ref_date = ref_time.to_date
 
-    gate = phase_gate(ref_time)
+    gate = phase_gate(zone, ref_time, ref_date)
     if gate.nil?
       Rails.logger.error("LunarPhaseEmailJob: skipping run — could not determine today's phase")
       return
@@ -26,21 +26,72 @@ class LunarPhaseEmailJob < ApplicationJob
       return
     end
 
-    phase_key = gate[:phase_name].presence || "special_moon"
+    phase_key = gate[:phase_key].presence || "special_moon"
     Rails.logger.info("LunarPhaseEmailJob: phase day on #{ref_date} (phase=#{phase_key}, special=#{gate[:special]}); sending boletim")
 
     # Only confirmed, non-unsubscribed recipients (double opt-in).
     User.subscribed.find_each do |user|
-      send_for(user, ref_time, ref_date, phase_key)
+      send_for(user, ref_time, ref_date, gate[:phase_key], phase_key)
     end
   end
 
   private
 
-  # Decide se hoje é um dia de envio. Faz UMA chamada à API (local de
-  # referência) e lê o nome bruto da fase + rótulos de lua especial.
-  def phase_gate(ref_time)
-    api_response = MoonApiService.new(ref_time, {
+  # Decide se hoje é um dia de envio. O nome instantâneo da fase na API só é
+  # confiável perto do instante exato (quartos quase nunca aparecem), então
+  # além do nome verificamos se o INSTANTE de alguma fase principal
+  # (next_phases) cai na data de hoje no fuso de entrega.
+  def phase_gate(zone, ref_time, ref_date)
+    data = fetch_reference_data(ref_time)
+    return nil if data.nil?
+
+    phase_name = data.dig(:phase, :name).to_s
+    special = Array(data.dig(:special_moon, :labels)).any?
+
+    normalized = phase_name.strip.gsub(" ", "_").downcase
+    phase_key =
+      if PRINCIPAL_PHASES.include?(normalized)
+        normalized
+      else
+        principal_phase_today(zone, ref_date, data)
+      end
+
+    { phase_key: phase_key, phase_name: phase_name, special: special,
+      email_day: phase_key.present? || special }
+  rescue => e
+    Rails.logger.error("LunarPhaseEmailJob: phase gate failed: #{e.class}: #{e.message}")
+    nil
+  end
+
+  # Alguma fase principal acontece hoje? Primeiro olha os next_phases da
+  # consulta atual (instantes ainda por vir hoje); se nada, consulta o início
+  # do dia para enxergar instantes que já passaram (ex.: lua nova de manhã).
+  def principal_phase_today(zone, ref_date, ref_data)
+    found = principal_instant_on(ref_data[:next_phases], zone, ref_date)
+    return found if found
+
+    day_start = zone.local(ref_date.year, ref_date.month, ref_date.day, 0, 5)
+    day_data = fetch_reference_data(day_start)
+    day_data && principal_instant_on(day_data[:next_phases], zone, ref_date)
+  end
+
+  def principal_instant_on(next_phases, zone, ref_date)
+    return nil if next_phases.blank?
+
+    PRINCIPAL_PHASES.find do |phase|
+      timestamp = next_phases[phase]
+      next false if timestamp.blank?
+
+      begin
+        zone.parse(timestamp.to_s)&.to_date == ref_date
+      rescue ArgumentError, TypeError
+        false
+      end
+    end
+  end
+
+  def fetch_reference_data(time)
+    api_response = MoonApiService.new(time, {
                                         "lat" => reference_latitude,
                                         "lon" => reference_longitude,
                                         "include_visuals" => true,
@@ -50,18 +101,10 @@ class LunarPhaseEmailJob < ApplicationJob
 
     return nil if api_response.nil? || (api_response.is_a?(Hash) && (api_response[:error].present? || api_response["error"].present?))
 
-    data = api_response.with_indifferent_access
-    phase_name = data.dig(:phase, :name).to_s
-    special = Array(data.dig(:special_moon, :labels)).any?
-    principal = PRINCIPAL_PHASES.include?(phase_name.strip.gsub(" ", "_").downcase)
-
-    { phase_name: phase_name, special: special, email_day: principal || special }
-  rescue => e
-    Rails.logger.error("LunarPhaseEmailJob: phase gate failed: #{e.class}: #{e.message}")
-    nil
+    api_response.with_indifferent_access
   end
 
-  def send_for(user, ref_time, ref_date, phase_key)
+  def send_for(user, ref_time, ref_date, principal_phase, phase_key)
     unless claim_delivery_slot(user, ref_date, phase_key)
       Rails.logger.info("LunarPhaseEmailJob: skipping duplicate send for #{user.email} on #{ref_date} (#{phase_key})")
       return
@@ -87,7 +130,11 @@ class LunarPhaseEmailJob < ApplicationJob
         return
       end
 
-      presenter = MoonData::Index.new(api_response.with_indifferent_access, reference_date: ref_date, latitude: user.latitude, longitude: user.longitude).present
+      presenter = MoonData::Index.new(api_response.with_indifferent_access,
+                                      reference_date: ref_date,
+                                      latitude: user.latitude,
+                                      longitude: user.longitude,
+                                      phase_name_override: principal_phase).present
       moon_data = MoonData.create(presenter)
     end
 

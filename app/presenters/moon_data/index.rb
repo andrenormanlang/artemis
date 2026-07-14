@@ -1,10 +1,13 @@
 class MoonData::Index < MoonData::Base
-  def initialize(moon_data, reference_date: Date.current, latitude: nil, longitude: nil)
+  def initialize(moon_data, reference_date: Date.current, latitude: nil, longitude: nil, phase_name_override: nil)
     super(moon_data, latitude: latitude, longitude: longitude)
     @reference_date = reference_date
+    @phase_name_override = phase_name_override
   end
 
   def present
+    apply_phase_override
+
     {
       phase: translate_phase(@moon_data[:phase][:name]),
       sign: translate_sign(@moon_data[:zodiac][:sign]),
@@ -18,6 +21,18 @@ class MoonData::Index < MoonData::Base
   end
 
   private
+
+  # No dia de uma fase principal a API pode já reportar o nome instantâneo
+  # seguinte (ex.: "Waxing Crescent" na noite da lua nova). O job passa a fase
+  # principal do dia e aqui ela vira o nome efetivo — refletido na tradução,
+  # no tarô e no api_response persistido.
+  def apply_phase_override
+    return if @phase_name_override.blank?
+
+    @moon_data = @moon_data.deep_dup
+    @moon_data[:phase] ||= {}
+    @moon_data[:phase][:name] = @phase_name_override
+  end
 
   def days_until(date_value)
     return 0 if date_value.blank?
