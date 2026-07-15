@@ -23,7 +23,7 @@ RSpec.describe MoonApiService, type: :service, vcr: true do
 
       # Stub Faraday to avoid external HTTP in CI
       fake_conn = double("FaradayConnection")
-      fake_resp = double("FaradayResponse", body: expected_response)
+      fake_resp = double("FaradayResponse", body: expected_response, success?: true)
       fake_request = double("FaradayRequest", headers: {})
       captured_params = nil
 
@@ -40,6 +40,24 @@ RSpec.describe MoonApiService, type: :service, vcr: true do
       expect(response).to have_key("zodiac")
       expect(response).to have_key("special_moon")
       expect(captured_params).to include("date" => "2026-04-17T21:30:00")
+    end
+
+    it "returns an error hash for non-2xx responses (e.g. 429 rate limit)" do
+      fake_conn = double("FaradayConnection")
+      fake_resp = double("FaradayResponse", success?: false, status: 429,
+                                            body: { "detail" => "throttled" },
+                                            headers: { "retry-after" => "1" })
+      fake_request = double("FaradayRequest", headers: {})
+
+      allow(fake_request).to receive(:params=)
+      allow(fake_conn).to receive(:get).and_yield(fake_request).and_return(fake_resp)
+      allow(Faraday).to receive(:new).and_return(fake_conn)
+
+      response = MoonApiService.new(date, params).call
+
+      expect(response[:error]).to eq("HTTP 429")
+      expect(response[:status]).to eq(429)
+      expect(response[:retry_after]).to eq(1)
     end
   end
 end

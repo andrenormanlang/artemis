@@ -17,7 +17,15 @@ class MoonApiService
       req.params = request_params
       req.headers["x-api-key"] = ENV["ASTRO_API_KEY"]
     end
-    conn_response.body
+
+    # Um 429/5xx traz um corpo JSON sem a chave "error"; sem olhar o status,
+    # ele passaria por resposta válida (foi assim que um rate limit virou
+    # "não há fase hoje"). Não-2xx vira um hash de erro explícito.
+    return conn_response.body if conn_response.success?
+
+    Rails.logger.error("API Consulta Error: HTTP #{conn_response.status} #{conn_response.body.inspect}")
+    { error: "HTTP #{conn_response.status}", status: conn_response.status,
+      retry_after: conn_response.headers["retry-after"].to_i }
 
   rescue Faraday::Error => e
     log_error(e)
