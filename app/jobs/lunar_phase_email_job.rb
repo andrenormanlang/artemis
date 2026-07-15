@@ -6,9 +6,16 @@ class LunarPhaseEmailJob < ApplicationJob
   PRINCIPAL_PHASES = %w[new_moon first_quarter full_moon last_quarter].freeze
 
   # Local de referência apenas para descobrir a fase do dia (a fase é
-  # global; a localização não altera o nome da fase). Sobrescrevível por ENV.
-  REFERENCE_LATITUDE  = -23.5505
-  REFERENCE_LONGITUDE = -46.6333
+  # global; a localização não altera o nome da fase). A API interpreta o
+  # parâmetro `date` como hora LOCAL das coordenadas, então usamos Malmö para
+  # alinhar a janela do dia com o fuso de entrega (Europe/Stockholm).
+  # Sobrescrevível por ENV.
+  REFERENCE_LATITUDE  = 55.6049
+  REFERENCE_LONGITUDE = 13.0038
+
+  # Tentativas por consulta à API (o plano gratuito tem limite de burst e
+  # responde 429 com retry-after de ~1s).
+  MAX_API_ATTEMPTS = 3
 
   def perform
     zone = Time.find_zone!(ENV.fetch("DELIVERY_TIME_ZONE", "Europe/Stockholm"))
@@ -72,7 +79,14 @@ class LunarPhaseEmailJob < ApplicationJob
 
     day_start = zone.local(ref_date.year, ref_date.month, ref_date.day, 0, 5)
     day_data = fetch_reference_data(day_start)
-    day_data && principal_instant_on(day_data[:next_phases], zone, ref_date)
+    if day_data.nil?
+      # Sem essa resposta não dá para afirmar que hoje NÃO é dia de fase —
+      # foi um 429 silencioso aqui que engoliu a lua nova de 2026-07-14.
+      Rails.logger.error("LunarPhaseEmailJob: start-of-day check unavailable; cannot rule out a principal phase today")
+      return nil
+    end
+
+    principal_instant_on(day_data[:next_phases], zone, ref_date)
   end
 
   def principal_instant_on(next_phases, zone, ref_date)
@@ -91,17 +105,29 @@ class LunarPhaseEmailJob < ApplicationJob
   end
 
   def fetch_reference_data(time)
-    api_response = MoonApiService.new(time, {
-                                        "lat" => reference_latitude,
-                                        "lon" => reference_longitude,
-                                        "include_visuals" => true,
-                                        "include_zodiac" => true,
-                                        "include_special" => true
-                                      }).call
+    fetch_moon_data(time, reference_latitude, reference_longitude)
+  end
 
-    return nil if api_response.nil? || (api_response.is_a?(Hash) && (api_response[:error].present? || api_response["error"].present?))
+  # Consulta a API com novas tentativas: o plano gratuito aplica um limite de
+  # burst (429 + retry-after ~1s), então esperar um pouco e repetir resolve.
+  def fetch_moon_data(time, lat, lon)
+    MAX_API_ATTEMPTS.times do |attempt|
+      api_response = MoonApiService.new(time, {
+                                          "lat" => lat,
+                                          "lon" => lon,
+                                          "include_visuals" => true,
+                                          "include_zodiac" => true,
+                                          "include_special" => true
+                                        }).call
 
-    api_response.with_indifferent_access
+      failed = api_response.nil? || (api_response.is_a?(Hash) && (api_response[:error].present? || api_response["error"].present?))
+      return api_response.with_indifferent_access unless failed
+
+      Rails.logger.warn("LunarPhaseEmailJob: moon API attempt #{attempt + 1}/#{MAX_API_ATTEMPTS} failed: #{api_response.inspect}")
+      sleep(2 * (attempt + 1)) if attempt < MAX_API_ATTEMPTS - 1
+    end
+
+    nil
   end
 
   def send_for(user, ref_time, ref_date, principal_phase, phase_key)
@@ -115,22 +141,16 @@ class LunarPhaseEmailJob < ApplicationJob
                                  created_at: ref_date.beginning_of_day..ref_date.end_of_day)
 
     if moon_data.nil?
-      api_response = MoonApiService.new(ref_time, {
-                                          "lat" => user.latitude,
-                                          "lon" => user.longitude,
-                                          "include_visuals" => true,
-                                          "include_zodiac" => true,
-                                          "include_special" => true
-                                        }).call
+      api_response = fetch_moon_data(ref_time, user.latitude, user.longitude)
 
-      # Falha de API: pula este usuário e libera o slot para reprocessar depois.
-      if api_response.nil? || (api_response.is_a?(Hash) && (api_response[:error].present? || api_response["error"].present?))
-        Rails.logger.error("LunarPhaseEmailJob: Moon API error for #{user.email}: #{api_response.inspect}")
+      # Falha de API (após as tentativas): pula este usuário e libera o slot.
+      if api_response.nil?
+        Rails.logger.error("LunarPhaseEmailJob: Moon API unavailable for #{user.email}; skipping")
         release_delivery_slot(user, ref_date, phase_key)
         return
       end
 
-      presenter = MoonData::Index.new(api_response.with_indifferent_access,
+      presenter = MoonData::Index.new(api_response,
                                       reference_date: ref_date,
                                       latitude: user.latitude,
                                       longitude: user.longitude,
