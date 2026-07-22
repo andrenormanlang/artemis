@@ -32,7 +32,7 @@ class SubscribersController < ApplicationController
     @user.unsubscribed_at = nil
 
     if @user.save
-      SubscriptionMailer.confirmation(@user).deliver_now
+      deliver_confirmation(@user)
       redirect_to subscriber_thanks_path, status: :see_other
     else
       flash.now[:alert] = @user.errors.full_messages.to_sentence
@@ -60,5 +60,16 @@ class SubscribersController < ApplicationController
     @title = "Inscrição cancelada"
     @message = "Você foi removido da lista e não receberá mais o boletim lunar. Sentiremos sua falta!"
     render :message
+  end
+
+  private
+
+  # A signup must never 500 because the mail backend rejected/failed the send
+  # (e.g. SES sandbox refusing an unverified recipient). Log it and move on —
+  # the user row exists and can be confirmed once delivery is sorted.
+  def deliver_confirmation(user)
+    SubscriptionMailer.confirmation(user).deliver_now
+  rescue => e
+    Rails.logger.error("SubscribersController: confirmation email failed for #{user.email}: #{e.class}: #{e.message}")
   end
 end

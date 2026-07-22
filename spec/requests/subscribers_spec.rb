@@ -42,6 +42,17 @@ RSpec.describe "Subscribers", type: :request do
     expect(user.longitude).to eq(User::DEFAULT_LONGITUDE)
   end
 
+  it "still succeeds (no 500) when the confirmation email fails to send" do
+    mailer = instance_double(ActionMailer::MessageDelivery)
+    allow(mailer).to receive(:deliver_now).and_raise(StandardError, "SES sandbox rejected recipient")
+    allow(SubscriptionMailer).to receive(:confirmation).and_return(mailer)
+
+    expect do
+      post subscribers_path, params: { user: { email: "unverified@example.com" } }
+    end.to change(User, :count).by(1)
+    expect(response).to redirect_to(subscriber_thanks_path)
+  end
+
   it "ignores honeypot submissions" do
     expect do
       post subscribers_path, params: { user: { email: "bot@example.com" }, nickname: "spam" }
