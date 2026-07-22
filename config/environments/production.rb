@@ -82,10 +82,10 @@ Rails.application.configure do
   config.action_mailer.perform_deliveries = true
 
   # Delivery method, chosen for where the app runs:
-  # - Render blocks outbound SMTP ports (25/465/587), so set
-  #   MAIL_DELIVERY_METHOD=ses there and provide AWS_REGION + AWS credentials —
-  #   SES sends over HTTPS (port 443), which Render allows.
-  # - The ECS Fargate task also uses :ses (via its IAM role, set in Terraform).
+  # - Render blocks outbound SMTP ports (25/465/587). Use MAIL_DELIVERY_METHOD=brevo
+  #   (Brevo HTTPS API + BREVO_API_KEY) there to reach any recipient for free,
+  #   or =ses if you have SES production access + AWS credentials.
+  # - The ECS Fargate task uses :ses (via its IAM role, set in Terraform).
   # - Local/other hosts default to plain SMTP.
   delivery_method = ENV.fetch("MAIL_DELIVERY_METHOD", "smtp").to_sym
   config.action_mailer.delivery_method = delivery_method
